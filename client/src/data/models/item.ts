@@ -3,13 +3,38 @@ export type Item = {
   reference: string;
   groupKey: string;
   description?: string;
+  currentLocation: {
+    id: string;
+    name: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
 
-export type ItemHistory = {
-  user: string;
-  email: string;
-  location: string;
-  date: Date;
+export interface baseItemHistory {
+  created: string;
+  userId: string;
+  userName: string;
+  date: string;
 }
+
+export interface ItemCreatedEvent extends baseItemHistory {
+  type: "created";
+  data: {
+    reference: string;
+    groupKey: string;
+    description?: string;
+    locationId: string;
+    locationName: string;
+  }
+}
+
+export interface ItemTrackedEvent extends baseItemHistory {
+  type: "tracked";
+  data: {
+    locationId: string;
+    locationName: string;
+  }
+}
+
+export type ItemHistoryEvent = ItemCreatedEvent | ItemTrackedEvent;

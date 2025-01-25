@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ItemHistory } from "@/data/models/item";
+import {ItemCreatedEvent, ItemHistoryEvent, ItemTrackedEvent} from "@/data/models/item";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {ArrowDownFromLine, ChevronDown, ChevronUp, PackageOpen} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface ItemTrackHistoryProps {
-  history: ItemHistory[];
+  history: ItemHistoryEvent[];
 }
 
 export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
@@ -46,10 +46,20 @@ export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
               </div>
             )}
 
-            {alwaysVisibleHistory.map((track, index) => <ItemTrackingInformation key={index} track={track} />)}
+            {alwaysVisibleHistory.map((itemHistoryEvent, index) => {
+              if (itemHistoryEvent.type === "created") {
+                return <ItemCreatedEventDetail key={index} event={itemHistoryEvent}/>
+              }
+              return <ItemTrackedEventDetail key={index} event={itemHistoryEvent}/>
+            })}
 
             <CollapsibleContent className="flex flex-col gap-1">
-              {hiddenHistory.map((track, index) => <ItemTrackingInformation key={index} track={track} />)}
+              {hiddenHistory.map((track, index) => {
+                if (track.type === "created") {
+                  return <ItemCreatedEventDetail key={index} event={track}/>
+                }
+                return <ItemTrackedEventDetail key={index} event={track}/>
+              })}
             </CollapsibleContent>
           </section>
         </Collapsible>
@@ -58,30 +68,41 @@ export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   );
 }
 
-function ItemTrackingInformation({ track }: { track: ItemHistory }) {
-  function getFirstLetters(input: string): string {
-    return input
-      .split(/\s+/)
-      .filter(word => word.length > 0)
-      .map(word => word[0])
-      .join('')
-      .toUpperCase();
-  }
-
+function ItemTrackedEventDetail({ event }: { event: ItemTrackedEvent }) {
   return (
     <div className="flex justify-between items-center mx-2 hover:bg-gray-50 p-4 rounded-lg">
       <div className="flex gap-2">
         <Avatar>
-          <AvatarFallback>{getFirstLetters(track.user)}</AvatarFallback>
+          <AvatarFallback className="bg-purple-300/80"><ArrowDownFromLine strokeWidth={1} size={18} /></AvatarFallback>
         </Avatar>
         <div className="text-sm">
-          <p className="font-semibold tracking-wide">{track.user}</p>
-          <p className="font-mono text-slate-600">{track.email}</p>
+          <p className="font-semibold tracking-wide">{event.userName}</p>
+          <p className="font-mono text-slate-600">user.name@notimplemented.com</p>
         </div>
       </div>
       <div className="text-sm">
-        <p>Tracked to {track.location}</p>
-        <p className="text-slate-600">{format(track.date, "PPP")}</p>
+        <p>Tracked to <span className="font-semibold">{event.data.locationName}</span></p>
+        <p className="text-slate-600 text-xs text-right">{format(event.date, "PPP HH:mm")}</p>
+      </div>
+    </div>
+  )
+}
+
+function ItemCreatedEventDetail({ event }: { event: ItemCreatedEvent }) {
+  return (
+    <div className="flex justify-between items-center mx-2 hover:bg-gray-50 p-4 rounded-lg">
+      <div className="flex gap-2">
+        <Avatar>
+          <AvatarFallback className="bg-green-500/80"><PackageOpen strokeWidth={1} size={24} /></AvatarFallback>
+        </Avatar>
+        <div className="text-sm">
+          <p className="font-semibold tracking-wide">{event.userName}</p>
+          <p className="font-mono text-slate-600">user.name@notimplemented.com</p>
+        </div>
+      </div>
+      <div className="text-sm">
+        <p>Created in <span className="font-semibold">{event.data.locationName}</span></p>
+        <p className="text-slate-600 text-xs text-right" title={event.date}>{format(event.date, "PPP HH:mm")}</p>
       </div>
     </div>
   )
