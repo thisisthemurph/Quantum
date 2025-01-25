@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: quantum-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quantumdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - quantum-data:/var/lib/postgresql/data
+
+volumes:
+  quantum-data:
+    name: quantum-data
