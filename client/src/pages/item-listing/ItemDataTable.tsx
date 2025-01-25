@@ -47,7 +47,7 @@ interface ItemDataTableProps {
 export function ItemDataTable({ data }: ItemDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ updatedAt: false });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ createdAt: false, updatedAt: false });
   const [rowSelection, setRowSelection] = useState({});
 
   const columns: ColumnDef<Item>[] = [
@@ -82,8 +82,7 @@ export function ItemDataTable({ data }: ItemDataTableProps) {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Reference
-            <ArrowUpDown />
+            Reference <ArrowUpDown />
           </Button>
         )
       },
@@ -94,6 +93,21 @@ export function ItemDataTable({ data }: ItemDataTableProps) {
           </Link>
         </Button>
       ),
+    },
+    {
+      accessorKey: "groupKey",
+      enableHiding: false,
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            className="-translate-x-[1rem]"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Group <ArrowUpDown />
+          </Button>
+        )
+      },
     },
     {
       accessorKey: "description",
