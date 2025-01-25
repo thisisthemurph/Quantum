@@ -119,12 +119,16 @@ export function ItemDataTable({ data }: ItemDataTableProps) {
             toast.error("Item tracking is not currently implemented");
           }}
           onCopyReference={() => {
-            navigator.clipboard.writeText(row.original.reference);
-            toast.success(`Reference ${row.original.reference} copied to clipboard`);
+            navigator.clipboard.writeText(row.original.reference)
+              .then(() => toast.success(`Reference ${row.original.reference} copied to clipboard`));
           }}
           onCopyDescription={() => {
-            navigator.clipboard.writeText(row.original.description);
-            toast.success("Description copied to clipboard");
+            if (!row.original.description) {
+              toast.warning("No description to copy");
+              return;
+            }
+            navigator.clipboard.writeText(row.original.description)
+              .then(() => toast.success("Description copied to clipboard"));
           }}
           onDeleteItem={() => {
             toast.error("Item deletion is not currently implemented");
@@ -151,7 +155,7 @@ export function ItemDataTable({ data }: ItemDataTableProps) {
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   return (
     <div className="w-full">
@@ -266,5 +270,5 @@ export function ItemDataTable({ data }: ItemDataTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

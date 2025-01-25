@@ -21,6 +21,7 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 
 	handlers := []HandlerBuilder{
 		NewItemHandler(services.ItemService, app.Logger),
+		NewLocationHandler(services.LocationService, app.Logger),
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

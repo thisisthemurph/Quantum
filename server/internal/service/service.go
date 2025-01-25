@@ -3,12 +3,14 @@ package service
 import "quantum/internal/repository"
 
 type Services struct {
-	ItemService *ItemService
+	ItemService     *ItemService
+	LocationService *LocationService
 }
 
 func NewServices(repos *repository.Repositories) *Services {
 	return &Services{
-		ItemService: NewItemService(repos.ItemRepository),
+		ItemService:     NewItemService(repos.ItemRepository),
+		LocationService: NewLocationService(repos.LocationRepository),
 	}
 }
 
