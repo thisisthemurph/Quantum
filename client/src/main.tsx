@@ -11,22 +11,27 @@ import SettingsPage from './pages/settings/index.tsx'
 import { TooltipProvider } from './components/ui/tooltip.tsx'
 import CreateItemPage from './pages/item-create/index.tsx'
 import { Toaster } from 'sonner';
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <TooltipProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<RootLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="/items" element={<ItemListingPage />} />
-            <Route path="/items/create" element={<CreateItemPage />} />
-            <Route path="/items/:itemId" element={<ItemDetailsPage />} />
-            <Route path="/locations" element={<LocationListingPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<RootLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="/items" element={<ItemListingPage />} />
+              <Route path="/items/create" element={<CreateItemPage />} />
+              <Route path="/items/:itemId" element={<ItemDetailsPage />} />
+              <Route path="/locations" element={<LocationListingPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
     </TooltipProvider>
     <Toaster />
   </StrictMode>,
