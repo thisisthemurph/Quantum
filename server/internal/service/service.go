@@ -9,7 +9,7 @@ type Services struct {
 
 func NewServices(repos *repository.Repositories) *Services {
 	return &Services{
-		ItemService:     NewItemService(repos.ItemRepository),
+		ItemService:     NewItemService(repos.ItemRepository, repos.ItemHistoryRepository, repos.LocationRepository),
 		LocationService: NewLocationService(repos.LocationRepository),
 	}
 }

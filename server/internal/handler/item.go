@@ -28,8 +28,10 @@ func NewItemHandler(itemService *service.ItemService, logger *slog.Logger) *Item
 func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/item/groups", mf(h.listItemGroups))
 	mux.HandleFunc("GET /api/v1/item/{itemId}", mf(h.getItemByID))
+	mux.HandleFunc("GET /api/v1/item/{itemId}/history", mf(h.getItemHistory))
 	mux.HandleFunc("GET /api/v1/item", mf(h.listItems))
 	mux.HandleFunc("POST /api/v1/item", mf(h.createItem))
+	mux.HandleFunc("POST /api/v1/item/{itemId}/track/{locationId}", mf(h.trackItem))
 }
 
 func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +42,7 @@ func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	itemResponse, err := h.itemService.GetByID(questionID)
+	itemResponse, err := h.itemService.Get(questionID)
 	if err != nil {
 		if errors.Is(err, service.ErrItemNotFound) {
 			res.Error(w, "item not found", http.StatusNotFound)
@@ -92,4 +94,46 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.JSON(w, newItem)
+}
+
+func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
+	itemID, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		h.logger.Error("invalid item id", "error", err)
+		res.Error(w, "invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	locationID, err := uuid.Parse(r.PathValue("locationId"))
+	if err != nil {
+		h.logger.Error("invalid location id", "error", err)
+		res.Error(w, "invalid location id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.itemService.TrackItem(itemID, locationID); err != nil {
+		h.logger.Error("error tracking item", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
+	itemID, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		h.logger.Error("invalid item id", "error", err)
+		res.Error(w, "invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	history, err := h.itemService.GetItemHistory(itemID)
+	if err != nil {
+		h.logger.Error("error getting item history", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	res.JSON(w, history)
 }
