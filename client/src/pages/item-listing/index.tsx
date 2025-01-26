@@ -1,25 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { ItemDataTable } from "./ItemDataTable";
-import { Item } from "@/data/models/item";
 import { Page } from "@/components/page";
 import { Link } from "react-router";
 import { PackagePlus } from "lucide-react";
 import { useItemsApi } from "@/data/api/items";
-import { useEffect, useState } from "react";
+import {useQuery} from "@tanstack/react-query";
 
 export default function ItemListingPage() {
   const { listItems } = useItemsApi();
-  const [items, setItems] = useState<Item[]>([]);
 
-  useEffect(() => {
-    listItems().then((items: Item[]) => {
-      setItems(items);
-    });
-  }, []);
+  const itemsQuery = useQuery({ queryKey: ["items"], queryFn: listItems });
 
   return (
     <Page title="Items listing" actionItems={<CreateNewItemButton />}>
-      <ItemDataTable data={items} />
+      <ItemDataTable data={itemsQuery.data ?? []} />
     </Page>
   );
 }
