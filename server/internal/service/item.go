@@ -83,8 +83,12 @@ func (s *ItemService) List() ([]dto.ItemResponse, error) {
 	return itemsResponse, nil
 }
 
-func (s *ItemService) ListItemGroups() ([]string, error) {
-	return s.itemRepo.ListItemGroups()
+func (s *ItemService) ListItemGroups(max int, filter string) ([]string, error) {
+	if max <= 0 {
+		max = 1
+	}
+
+	return s.itemRepo.ListItemGroups(max, filter)
 }
 
 func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, error) {

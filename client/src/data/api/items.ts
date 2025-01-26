@@ -32,8 +32,8 @@ export function useItemsApi() {
     throw new Error("Failed to fetch item");
   }
 
-  async function getItemGroups(): Promise<string[]> {
-    const response = await fetch("http://localhost:42069/api/v1/item/groups", {
+  async function getItemGroups(max=5, filter=""): Promise<string[]> {
+    const response = await fetch(`http://localhost:42069/api/v1/item/groups?max=${max}&filter=${filter}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
