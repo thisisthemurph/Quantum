@@ -1,10 +1,10 @@
 import { Page } from "@/components/page";
 import { LocationDataTable } from "@/pages/location-listing/LocationDataTable";
-import {useLocationsApi} from "@/data/api/locations.ts";
-import {useEffect, useState} from "react";
-import {Location} from "@/data/models/location.ts";
-import {CreateNewLocationButton} from "@/pages/location-listing/CreateNewLocationButton.tsx";
-import {CreateLocationForm, CreateLocationFormValues} from "@/pages/location-listing/CreateLocationForm.tsx";
+import { useLocationsApi } from "@/data/api/locations.ts";
+import { useState } from "react";
+import { Location } from "@/data/models/location.ts";
+import { CreateNewLocationButton } from "@/pages/location-listing/CreateNewLocationButton.tsx";
+import { CreateLocationForm, CreateLocationFormValues } from "@/pages/location-listing/CreateLocationForm.tsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,38 +14,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
-import {toast} from "sonner";
+import { toast } from "sonner";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 
 export default function LocationListingPage() {
   const { listLocations, createLocation, deleteLocation } = useLocationsApi();
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [deletingLocation, setDeletingLocation] = useState<Location | undefined>();
+  const [locationPendingDeletion, setLocationPendingDeletion] = useState<Location | undefined>();
 
-  useEffect(() => {
-    listLocations().then((locations) => {
-      setLocations(locations);
-    });
-  }, []);
+  const queryClient = useQueryClient();
+  const locationsQuery = useQuery({ queryKey: ["locations"], queryFn: listLocations });
+
+  const deleteLocationMutation = useMutation({
+    mutationFn: deleteLocation,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["locations"] });
+      toast.success("Location deleted");
+    },
+    onError: () => toast.error("Failed to delete location"),
+  });
 
   function handleCreateLocation(values: CreateLocationFormValues) {
-    console.log(values);
     createLocation({ name: values.name, description: values.description })
-      .then((location) => setLocations([location, ...locations]));
+      .then(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["locations"] });
+        toast.success(`Location ${values.name} created`);
+      })
   }
 
   function handleDeleteLocationClicked(location: Location) {
-    setDeletingLocation(location);
-  }
-
-  function handleDeleteLocationConfirmed() {
-    if (!deletingLocation) return;
-    deleteLocation(deletingLocation.id)
-      .then(() => {
-        setLocations(locations.filter((location) => location.id !== deletingLocation.id));
-      })
-      .then(() => toast.success("Location deleted"))
-      .catch(() => toast.error("Failed to delete location"))
-      .finally(() => setDeletingLocation(undefined));
+    setLocationPendingDeletion(location);
   }
 
   return (
@@ -54,23 +51,31 @@ export default function LocationListingPage() {
         <CreateLocationForm onSubmit={handleCreateLocation} />
       </CreateNewLocationButton>
     }>
-      <LocationDataTable data={locations} onDelete={handleDeleteLocationClicked} />
+      <LocationDataTable data={locationsQuery.data ?? []} onDelete={handleDeleteLocationClicked} />
 
-      <AlertDialog open={!!deletingLocation} onOpenChange={(opening) => {
-        if (!opening) setDeletingLocation(undefined);
+      <AlertDialog open={!!locationPendingDeletion} onOpenChange={(opening) => {
+        if (!opening) setLocationPendingDeletion(undefined);
       }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this location?</AlertDialogTitle>
             <AlertDialogDescription className="sr-only">
-              Are you sure you want to delete the {deletingLocation?.name} location?
+              Are you sure you want to delete the {locationPendingDeletion?.name} location?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <p>
-            Are you sure you want to delete the <span className="font-semibold underline underline-offset-2">{deletingLocation?.name}</span> location?</p>
+            Are you sure you want to delete the <span className="font-semibold underline underline-offset-2">{locationPendingDeletion?.name}</span> location?</p>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteLocationConfirmed} className="bg-destructive hover:bg-destructive/80">Delete</AlertDialogAction>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/80"
+              onClick={() => {
+                if (!locationPendingDeletion) return;
+                deleteLocationMutation.mutate(locationPendingDeletion.id);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
