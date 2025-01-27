@@ -20,13 +20,21 @@ export type CreateItemFormValues = z.infer<typeof formSchema>;
 
 interface CreateItemFormProps {
   groups: string[] | null;
-  mruGroups: string[],
+  recentGroups: string[],
   locations: Location[];
   onGroupSearched: (value: string) => void;
+  onLocationSearched: (value: string) => void;
   onSubmit: (values: CreateItemFormValues) => Promise<void>;
 }
 
-export function CreateItemForm({groups, mruGroups, locations, onGroupSearched, onSubmit}: CreateItemFormProps) {
+export function CreateItemForm({
+  groups,
+  recentGroups,
+  locations,
+  onGroupSearched,
+  onLocationSearched,
+  onSubmit,
+}: CreateItemFormProps) {
   const [groupCommandDialogOpen, setGroupCommandDialogOpen] = useState(false);
   const [locationCommandDialogOpen, setLocationCommandDialogOpen] = useState(false);
 
@@ -83,7 +91,7 @@ export function CreateItemForm({groups, mruGroups, locations, onGroupSearched, o
                   label={"Group"}
                   labelPlural={"Groups"}
                   items={groups ?? []}
-                  pinnedItems={mruGroups}
+                  pinnedItems={recentGroups}
                   onSearch={onGroupSearched}
                   onItemSelected={(groupKey) => {
                     form.setValue("groupKey", groupKey);
@@ -95,7 +103,7 @@ export function CreateItemForm({groups, mruGroups, locations, onGroupSearched, o
                   }}
                   fieldValue={field.value}
                   itemValueResolver={(groupKey) => groupKey}
-                  rowDefinition={(group) => <span>{group}</span>}
+                  rowDefinition={(groupKey) => <span>{groupKey}</span>}
                 />
               </FormItem>
             )}
@@ -136,17 +144,20 @@ export function CreateItemForm({groups, mruGroups, locations, onGroupSearched, o
               </FormControl>
               <CommandDialogCombobox
                 open={locationCommandDialogOpen}
-                onOpenChange={setLocationCommandDialogOpen}
-                fieldValue={field.value}
-                itemValueResolver={(location) => location.id}
+                onOpenChange={(open) => {
+                  if (!open) onLocationSearched("");
+                  setLocationCommandDialogOpen(open);
+                }}
                 label={"Location"}
                 labelPlural={"Locations"}
                 items={locations}
-                onSearch={console.log}
+                onSearch={onLocationSearched}
                 onItemSelected={(location) => {
                   form.setValue("locationId", location.id);
                   setLocationCommandDialogOpen(false);
                 }}
+                fieldValue={field.value}
+                itemValueResolver={(location) => location.id}
                 rowDefinition={(location) => <span>{location.name}</span>}
               />
             </FormItem>

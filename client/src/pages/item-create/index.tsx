@@ -14,6 +14,7 @@ export default function CreateItemPage() {
   const { recentGroups, addGroupToMru } = useMostRecentlyUsed();
 
   const [groupsFilter, setGroupsFilter] = useState("");
+  const [locationsFilter, setLocationsFilter] = useState("");
 
   const recentlyUsedGroupsQuery = useQuery({
     queryKey: ["favouriteGroupKeys"],
@@ -32,8 +33,11 @@ export default function CreateItemPage() {
   });
 
   const locationsQuery = useQuery({
-    queryKey: ["locations"],
-    queryFn: listLocations,
+    queryKey: ["locations", locationsFilter],
+    queryFn: ({ queryKey }) => {
+      const [, filter] = queryKey;
+      return listLocations(5, filter)
+    },
   });
 
   async function handleSubmit(values: CreateItemFormValues) {
@@ -46,11 +50,10 @@ export default function CreateItemPage() {
     <Page title="Create a new item">
       <CreateItemForm
         groups={groupsQuery.data ?? []}
-        mruGroups={recentlyUsedGroupsQuery.data ?? []}
+        recentGroups={recentlyUsedGroupsQuery.data ?? []}
         locations={locationsQuery.data ?? []}
-        onGroupSearched={(value) => {
-          setGroupsFilter(value);
-        }}
+        onGroupSearched={setGroupsFilter}
+        onLocationSearched={setLocationsFilter}
         onSubmit={handleSubmit}
       />
     </Page>
