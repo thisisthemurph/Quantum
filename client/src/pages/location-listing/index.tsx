@@ -22,7 +22,10 @@ export default function LocationListingPage() {
   const [locationPendingDeletion, setLocationPendingDeletion] = useState<Location | undefined>();
 
   const queryClient = useQueryClient();
-  const locationsQuery = useQuery({ queryKey: ["locations"], queryFn: listLocations });
+  const locationsQuery = useQuery({
+    queryKey: ["locations"],
+    queryFn: () => listLocations(),
+  });
 
   const deleteLocationMutation = useMutation({
     mutationFn: deleteLocation,
