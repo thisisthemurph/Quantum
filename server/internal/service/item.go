@@ -91,6 +91,10 @@ func (s *ItemService) ListItemGroups(max int, filter string) ([]string, error) {
 	return s.itemRepo.ListItemGroups(max, filter)
 }
 
+func (s *ItemService) GroupKeyExists(groupKey string) (bool, error) {
+	return s.itemRepo.GroupKeyExists(groupKey)
+}
+
 func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, error) {
 	itemModel := model.ItemModel{
 		Reference:   item.Reference,

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -29,6 +30,7 @@ func NewItemHandler(itemService *service.ItemService, logger *slog.Logger) *Item
 func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/item/groups", mf(h.listItemGroups))
 	mux.HandleFunc("GET /api/v1/item/{itemId}", mf(h.getItemByID))
+	mux.HandleFunc("GET /api/v1/item/groups/exist", mf(h.getItemGroupsExist))
 	mux.HandleFunc("GET /api/v1/item/{itemId}/history", mf(h.getItemHistory))
 	mux.HandleFunc("GET /api/v1/item", mf(h.listItems))
 	mux.HandleFunc("POST /api/v1/item", mf(h.createItem))
@@ -146,4 +148,22 @@ func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.JSON(w, history)
+}
+
+func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request) {
+	groupParams := r.URL.Query().Get("groups")
+	groupsKeys := strings.Split(groupParams, ",")
+
+	var results = make(map[string]bool)
+	for _, groupKey := range groupsKeys {
+		exists, err := h.itemService.GroupKeyExists(groupKey)
+		if err != nil {
+			h.logger.Error("error checking group key", "error", err)
+			res.InternalServerError(w)
+			return
+		}
+		results[groupKey] = exists
+	}
+
+	res.JSON(w, results)
 }

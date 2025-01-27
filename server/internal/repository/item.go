@@ -9,7 +9,8 @@ import (
 type ItemRepository interface {
 	GetByID(id uuid.UUID) (model.ItemModel, error)
 	List() ([]model.ItemModel, error)
-	ListItemGroups() ([]string, error)
+	ListItemGroups(max int, filter string) ([]string, error)
+	GroupKeyExists(groupKey string) (bool, error)
 	Create(item *model.ItemModel) error
 	Delete(id uuid.UUID) error
 }
@@ -42,13 +43,28 @@ func (r *postgresItemRepository) List() ([]model.ItemModel, error) {
 	return items, nil
 }
 
-func (r *postgresItemRepository) ListItemGroups() ([]string, error) {
-	stmt := "select distinct group_key from items order by group_key;"
+func (r *postgresItemRepository) ListItemGroups(max int, filter string) ([]string, error) {
+	stmt := `
+		select distinct group_key 
+		from items
+		where ($1 = '' or group_key ilike '%' || $1 || '%')
+		order by group_key 
+		limit $2;`
+
 	var groups = make([]string, 0)
-	if err := r.db.Select(&groups, stmt); err != nil {
+	if err := r.db.Select(&groups, stmt, filter, max); err != nil {
 		return nil, err
 	}
 	return groups, nil
+}
+
+func (r *postgresItemRepository) GroupKeyExists(groupKey string) (bool, error) {
+	stmt := "select exists(select 1 from items where group_key = $1);"
+	var exists bool
+	if err := r.db.Get(&exists, stmt, groupKey); err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func (r *postgresItemRepository) Create(item *model.ItemModel) error {
