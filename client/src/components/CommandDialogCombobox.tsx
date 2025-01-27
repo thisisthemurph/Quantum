@@ -52,11 +52,12 @@ export function CommandDialogCombobox<TItem>(props: CommandDialogComboboxProps<T
   return (
     <CommandDialog
       open={props.open}
+      shouldFilter={false}
       onOpenChange={(open) => {
         if (!open) setSearchValue("");
         props.onOpenChange(open);
-      }
-    }>
+      }}
+    >
       <CommandInput placeholder={`Search ${labelPlural.toLowerCase()}`} onValueChange={(value) => {
         setSearchValue(value);
         props.onSearch(value);
@@ -65,22 +66,35 @@ export function CommandDialogCombobox<TItem>(props: CommandDialogComboboxProps<T
         <CommandEmpty>
           {showCreateItemScreen
             ? <CreateItemScreen searchValue={searchValue} {...props} />
-            : <p className="text-center text-muted-foreground text-left">No {labelPlural.toLowerCase()} found.</p>}
+            : <p className="text-center text-muted-foreground text-left">
+                No {labelPlural.toLowerCase()} found.
+              </p>}
         </CommandEmpty>
+        {showPinnedItems && (
+          <CommandGroup heading={`Recent ${labelPlural}`}>
+            {pinnedItems.map((pinnedItem, idx) => {
+              const itemValue = props.itemValueResolver(pinnedItem);
+              return (
+                <PinnedItemRow
+                  key={`pinned-${itemValue}-${idx}`}
+                  item={pinnedItem}
+                  itemValue={itemValue}
+                  {...props} />
+              );
+            })}
+            <CommandSeparator className="my-2" />
+          </CommandGroup>
+        )}
         <CommandGroup>
-          {showPinnedItems && (
-            <>
-              <p className="text-[0.6rem] text-muted-foreground pb-2">Recent {labelPlural.toLowerCase()}</p>
-              {pinnedItems.map((pinnedItem, idx) => {
-                const itemValue = props.itemValueResolver(pinnedItem);
-                return <PinnedItemRow key={`pinned-${itemValue}-${idx}`} itemValue={itemValue} item={pinnedItem} {...props} />;
-              })}
-              <CommandSeparator className="my-2" />
-            </>
-          )}
           {filteredItems.map((item, idx) => {
             const itemValue = props.itemValueResolver(item);
-            return <StandardItemRow key={`${itemValue}-${idx}`} item={item} itemValue={itemValue} {...props} />;
+            return (
+              <StandardItemRow
+                key={`${itemValue}-${idx}`}
+                item={item}
+                itemValue={itemValue}
+                {...props} />
+            );
           })}
         </CommandGroup>
       </CommandList>
