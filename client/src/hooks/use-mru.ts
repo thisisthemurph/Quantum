@@ -18,7 +18,7 @@ export function useMostRecentlyUsed() {
       return data ? JSON.parse(data) : DEFAULT_MRU;
     } catch {
       console.warn("Failed to load MRU from local storage");
-      setMru(DEFAULT_MRU);
+      localStorage.removeItem(KEY);
       return DEFAULT_MRU;
     }
   });
