@@ -41,8 +41,8 @@ func (s *LocationService) Get(locationID uuid.UUID) (dto.LocationResponse, error
 	return location, nil
 }
 
-func (s *LocationService) List() ([]dto.LocationResponse, error) {
-	locations, err := s.locationRepo.List()
+func (s *LocationService) List(max *int, filter string, includeDeleted bool) ([]dto.LocationResponse, error) {
+	locations, err := s.locationRepo.List(max, filter, includeDeleted)
 	if err != nil {
 		return nil, err
 	}

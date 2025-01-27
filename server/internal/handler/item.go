@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -68,15 +67,13 @@ func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
-	maxQueryParam := r.URL.Query().Get("max")
-	filterQueryParam := r.URL.Query().Get("filter")
-
-	maxResults, err := strconv.Atoi(maxQueryParam)
-	if err != nil {
-		maxResults = 10
+	filters := getFiltersFromRequest(r)
+	if filters.Max == nil {
+		defaultMaxFilter := 10
+		filters.Max = &defaultMaxFilter
 	}
 
-	groups, err := h.itemService.ListItemGroups(maxResults, filterQueryParam)
+	groups, err := h.itemService.ListItemGroups(*filters.Max, filters.Filter)
 	if err != nil {
 		h.logger.Error("error listing item groups", "error", err)
 		res.InternalServerError(w)

@@ -7,7 +7,7 @@ import (
 )
 
 type LocationRepository interface {
-	List() ([]model.LocationModel, error)
+	List(max *int, filter string, includeDeleted bool) ([]model.LocationModel, error)
 	Get(id uuid.UUID) (model.LocationModel, error)
 	Create(location *model.LocationModel) error
 	MarkDeleted(id uuid.UUID) error
@@ -23,10 +23,17 @@ func NewLocationRepository(db *sqlx.DB) LocationRepository {
 	}
 }
 
-func (r *postgresLocationRepository) List() ([]model.LocationModel, error) {
-	stmt := "select * from locations where is_deleted = false;"
+func (r *postgresLocationRepository) List(max *int, filter string, includeDeleted bool) ([]model.LocationModel, error) {
+	stmt := `
+		select * 
+		from locations 
+		where name ilike '%' || $1 || '%' 
+		  and ($2 = true or is_deleted = false)
+		order by name
+		limit coalesce($3::int, null::int);`
+
 	var locations = make([]model.LocationModel, 0)
-	if err := r.db.Select(&locations, stmt); err != nil {
+	if err := r.db.Select(&locations, stmt, filter, includeDeleted, max); err != nil {
 		return nil, err
 	}
 	return locations, nil

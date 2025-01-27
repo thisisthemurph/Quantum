@@ -31,8 +31,10 @@ func (h *LocationHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) 
 }
 
 func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) {
-	locations, err := h.locationService.List()
+	filters := getFiltersFromRequest(r)
+	locations, err := h.locationService.List(filters.Max, filters.Filter, filters.IncludeDeleted)
 	if err != nil {
+		h.logger.Error("failed to list locations", "error", err)
 		res.InternalServerError(w)
 		return
 	}
