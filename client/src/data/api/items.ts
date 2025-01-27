@@ -32,6 +32,9 @@ export function useItemsApi() {
     throw new Error("Failed to fetch item");
   }
 
+  // getItemGroups returns a list of item groupsKey values.
+  // The max parameter is the maximum number of groups to return.
+  // The filter parameter is a string to filter the groups.
   async function getItemGroups(max=5, filter=""): Promise<string[]> {
     const response = await fetch(`http://localhost:42069/api/v1/item/groups?max=${max}&filter=${filter}`, {
       method: "GET",
@@ -97,5 +100,27 @@ export function useItemsApi() {
     throw new Error("Failed to track item");
   }
 
-  return { listItems, getItem, getUserTrackedItems, getItemHistory, getItemGroups, createItem, trackItem };
+  async function groupKeysExist(groupKeys: string[]): Promise<{[key: string]: boolean }> {
+    const groupKeyQuery = groupKeys.map(k => k.trim()).join(",");
+    const response = await fetch(`http://localhost:42069/api/v1/item/groups/exist?groups=${groupKeyQuery}`, {
+      method: "GET"
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+
+    throw new Error("Failed to check group keys");
+  }
+
+  return {
+    listItems,
+    getItem,
+    getUserTrackedItems,
+    getItemHistory,
+    getItemGroups,
+    createItem,
+    trackItem,
+    groupKeysExist,
+  };
 }
