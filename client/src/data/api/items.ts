@@ -36,7 +36,12 @@ export function useItemsApi() {
   // The max parameter is the maximum number of groups to return.
   // The filter parameter is a string to filter the groups.
   async function getItemGroups(max=5, filter=""): Promise<string[]> {
-    const response = await fetch(`http://localhost:42069/api/v1/item/groups?max=${max}&filter=${filter}`, {
+    const params = new URLSearchParams({ max: max.toString() });
+    if (filter) {
+      params.append("filter", filter);
+    }
+
+    const response = await fetch(`http://localhost:42069/api/v1/item/groups?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -71,6 +76,10 @@ export function useItemsApi() {
   }
 
   async function getItemHistory(itemId: string): Promise<ItemHistoryEvent[]> {
+    if (!itemId) {
+      throw new Error("Invalid item ID");
+    }
+
     const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}/history`, {
       method: "GET",
       headers: {
@@ -101,8 +110,8 @@ export function useItemsApi() {
   }
 
   async function groupKeysExist(groupKeys: string[]): Promise<{[key: string]: boolean }> {
-    const groupKeyQuery = groupKeys.map(k => k.trim()).join(",");
-    const response = await fetch(`http://localhost:42069/api/v1/item/groups/exist?groups=${groupKeyQuery}`, {
+    const params = new URLSearchParams({ groups: groupKeys.map(k => k.trim()).join(",") });
+    const response = await fetch(`http://localhost:42069/api/v1/item/groups/exist?${params.toString()}`, {
       method: "GET"
     });
 
