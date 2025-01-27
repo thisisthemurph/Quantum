@@ -1,8 +1,16 @@
 import {CreateLocationRequest, Location} from "@/data/models/location";
 
 export function useLocationsApi() {
-  async function listLocations(): Promise<Location[]> {
-    const response = await fetch("http://localhost:42069/api/v1/location", {
+  async function listLocations(max?: number, filter?: string): Promise<Location[]> {
+    const params = new URLSearchParams({});
+    if (max) {
+      params.append("max", max.toString());
+    }
+    if (filter) {
+      params.append("filter", filter);
+    }
+
+    const response = await fetch(`http://localhost:42069/api/v1/location?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
