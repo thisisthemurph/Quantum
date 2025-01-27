@@ -1,15 +1,13 @@
-import {z} from "zod";
-import {Form, FormControl, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
-import {Input} from "@/components/ui/input.tsx";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import {cn} from "@/lib/utils.ts";
-import {Check, ChevronsUpDown} from "lucide-react";
-import {Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";
-import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {Location} from "@/data/models/location";
-import {useState} from "react";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Button} from "@/components/ui/button.tsx";
+import { cn } from "@/lib/utils.ts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Location } from "@/data/models/location";
+import { useState } from "react";
+import { CommandDialogCombobox } from "@/components/CommandDialogCombobox.tsx";
 
 const formSchema = z.object({
   reference: z.string().min(1, "A reference must be provided"),
@@ -22,14 +20,15 @@ export type CreateItemFormValues = z.infer<typeof formSchema>;
 
 interface CreateItemFormProps {
   groups: string[] | null;
+  mruGroups: string[],
   locations: Location[];
   onGroupSearched: (value: string) => void;
   onSubmit: (values: CreateItemFormValues) => Promise<void>;
 }
 
-export function CreateItemForm({ groups, locations, onGroupSearched, onSubmit }: CreateItemFormProps) {
-  const [groupIsOpen, setGroupIsOpen] = useState(false);
-  const [groupInputValue, setGroupInputValue] = useState("");
+export function CreateItemForm({groups, mruGroups, locations, onGroupSearched, onSubmit}: CreateItemFormProps) {
+  const [groupCommandDialogOpen, setGroupCommandDialogOpen] = useState(false);
+  const [locationCommandDialogOpen, setLocationCommandDialogOpen] = useState(false);
 
   const form = useForm<CreateItemFormValues>({
     resolver: zodResolver(formSchema),
@@ -52,7 +51,7 @@ export function CreateItemForm({ groups, locations, onGroupSearched, onSubmit }:
               <FormItem className="w-full">
                 <FormLabel>Reference</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="A unique reference for your item" />
+                  <Input {...field} placeholder="A unique reference for your item"/>
                 </FormControl>
               </FormItem>
             )}
@@ -69,53 +68,35 @@ export function CreateItemForm({ groups, locations, onGroupSearched, onSubmit }:
                     <Button
                       variant="outline"
                       className={cn("min-w-48 w-full justify-start px-3", !field.value && "text-muted-foreground")}
-                      onClick={() => setGroupIsOpen(!groupIsOpen)}
+                      onClick={() => setGroupCommandDialogOpen(!groupCommandDialogOpen)}
                     >
-                      {field.value?.length > 0  ? field.value : "Select a group"}
+                      {field.value?.length > 0 ? field.value : "Select a group"}
                     </Button>
                   </div>
                 </FormControl>
-                <CommandDialog open={groupIsOpen} onOpenChange={setGroupIsOpen}>
-                  <CommandInput placeholder="Search groups" onValueChange={(value) => {
-                    setGroupInputValue(value);
-                    onGroupSearched(value);
-                  }} />
-                  <CommandList>
-                    <CommandEmpty>
-                      <p className="px-4 pb-4 text-muted-foreground text-left">
-                        Group <span className="font-semibold underline underline-offset-2">{groupInputValue}</span> does not exist, would you like to create it?
-                      </p>
-                      <section className="flex items-center gap-2 px-4">
-                        <Input placeholder="Create a new group" disabled={true} value={groupInputValue} />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            form.setValue("groupKey", groupInputValue);
-                            setGroupIsOpen(false);
-                          }}
-                        >
-                          Create
-                        </Button>
-                      </section>
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {groups?.map((group) => (
-                        <CommandItem
-                          value={group}
-                          key={group}
-                          onSelect={() => {
-                            form.setValue("groupKey", group);
-                            setGroupIsOpen(false);
-                          }}
-                        >
-                          {group}
-                          <Check className={cn("ml-auto", group === field.value ? "opacity-100" : "opacity-0")} />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </CommandDialog>
+                <CommandDialogCombobox
+                  open={groupCommandDialogOpen}
+                  onOpenChange={(open) => {
+                    if (!open) onGroupSearched("");
+                    setGroupCommandDialogOpen(open);
+                  }}
+                  label={"Group"}
+                  labelPlural={"Groups"}
+                  items={groups ?? []}
+                  pinnedItems={mruGroups}
+                  onSearch={onGroupSearched}
+                  onItemSelected={(groupKey) => {
+                    form.setValue("groupKey", groupKey);
+                    setGroupCommandDialogOpen(false);
+                  }}
+                  onItemCreated={(groupKey) => {
+                    form.setValue("groupKey", groupKey);
+                    setGroupCommandDialogOpen(false);
+                  }}
+                  fieldValue={field.value}
+                  itemValueResolver={(groupKey) => groupKey}
+                  rowDefinition={(group) => <span>{group}</span>}
+                />
               </FormItem>
             )}
           />
@@ -128,54 +109,46 @@ export function CreateItemForm({ groups, locations, onGroupSearched, onSubmit }:
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="A short description for the item" />
+                <Input {...field} placeholder="A short description for the item"/>
               </FormControl>
             </FormItem>
           )}
         />
 
         <FormField
-          control={form.control}
           name="locationId"
+          control={form.control}
           render={({field}) => (
-            <FormItem className="flex flex-col justify-between w-full">
-              <FormLabel className="sm:pt-[0.35rem] pt-0">Location</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value && "text-muted-foreground")}>
-                      {field.value
-                        ? locations?.find((location) => location.id === field.value)?.name
-                        : "Select a location"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search groups" />
-                    <CommandList>
-                      <CommandEmpty>No locations found.</CommandEmpty>
-                      <CommandGroup>
-                        {locations?.map((location) => (
-                          <CommandItem value={location.id} key={location.id} onSelect={() => form.setValue("locationId", location.id)}>
-                            {location.name}
-
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                location.id === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className={cn("min-w-48 w-full justify-start px-3", !field.value && "text-muted-foreground")}
+                    onClick={() => setLocationCommandDialogOpen(!locationCommandDialogOpen)}
+                  >
+                    {field.value?.length > 0
+                      ? locations.find((location) => location.id === field.value)?.name
+                      : "Select a location"}
+                  </Button>
+                </div>
+              </FormControl>
+              <CommandDialogCombobox
+                open={locationCommandDialogOpen}
+                onOpenChange={setLocationCommandDialogOpen}
+                fieldValue={field.value}
+                itemValueResolver={(location) => location.id}
+                label={"Location"}
+                labelPlural={"Locations"}
+                items={locations}
+                onSearch={console.log}
+                onItemSelected={(location) => {
+                  form.setValue("locationId", location.id);
+                  setLocationCommandDialogOpen(false);
+                }}
+                rowDefinition={(location) => <span>{location.name}</span>}
+              />
             </FormItem>
           )}
         />
