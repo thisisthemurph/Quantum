@@ -11,11 +11,11 @@ export default function CreateItemPage() {
   const navigate = useNavigate();
   const { getItemGroups, createItem, groupKeysExist } = useItemsApi();
   const { listLocations } = useLocationsApi();
-  const { recentGroups, addGroupToFavourites } = useMostRecentlyUsed();
+  const { recentGroups, addGroupToMru } = useMostRecentlyUsed();
 
   const [groupsFilter, setGroupsFilter] = useState("");
 
-  const favouriteGroupsQuery = useQuery({
+  const recentlyUsedGroupsQuery = useQuery({
     queryKey: ["favouriteGroupKeys"],
     queryFn: async () => {
       const groupExistence = await groupKeysExist(recentGroups);
@@ -38,7 +38,7 @@ export default function CreateItemPage() {
 
   async function handleSubmit(values: CreateItemFormValues) {
     const newItem = await createItem(values);
-    addGroupToFavourites(values.groupKey);
+    addGroupToMru(values.groupKey);
     navigate(`/items/${newItem.id}`);
   }
 
@@ -46,7 +46,7 @@ export default function CreateItemPage() {
     <Page title="Create a new item">
       <CreateItemForm
         groups={groupsQuery.data ?? []}
-        mruGroups={favouriteGroupsQuery.data ?? []}
+        mruGroups={recentlyUsedGroupsQuery.data ?? []}
         locations={locationsQuery.data ?? []}
         onGroupSearched={(value) => {
           setGroupsFilter(value);

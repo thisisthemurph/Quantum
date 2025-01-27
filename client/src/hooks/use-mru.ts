@@ -38,7 +38,7 @@ export function useMostRecentlyUsed() {
     return arr;
   }
 
-  function addGroupToFavourites(groupKey: string) {
+  function addGroupToMru(groupKey: string) {
     let groups = [...mru.groups];
 
     if (groups.includes(groupKey)) {
@@ -59,6 +59,6 @@ export function useMostRecentlyUsed() {
   return {
     recentGroups: mru.groups,
     recentLocations: mru.locations,
-    addGroupToFavourites,
+    addGroupToMru,
   }
 }
