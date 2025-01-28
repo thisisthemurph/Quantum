@@ -37,4 +37,15 @@ export interface ItemTrackedEvent extends baseItemHistory {
   }
 }
 
+interface ItemCurrentLocation {
+  id: string;
+  name: string;
+  description: string;
+  trackedAt: string;
+}
+
+export interface ItemWithCurrentLocation extends Item{
+  currentLocation: ItemCurrentLocation;
+}
+
 export type ItemHistoryEvent = ItemCreatedEvent | ItemTrackedEvent;

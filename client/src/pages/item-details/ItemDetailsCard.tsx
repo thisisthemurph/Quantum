@@ -26,7 +26,6 @@ export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsP
         </div>
         <div className="flex justify-between items-start">
           <CardDescription>{item.description ?? "This item does not have a description"}</CardDescription>
-
         </div>
       </CardHeader>
       <CardFooter>

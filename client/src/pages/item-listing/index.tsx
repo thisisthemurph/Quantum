@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { ItemDataTable } from "./ItemDataTable";
+import { ItemDataTable } from "../../components/ItemDataTable.tsx";
 import { Page } from "@/components/page";
 import { Link } from "react-router";
 import { PackagePlus } from "lucide-react";
 import { useItemsApi } from "@/data/api/items";
-import {useQuery} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ItemListingPage() {
   const { listItems } = useItemsApi();
@@ -13,7 +13,7 @@ export default function ItemListingPage() {
 
   return (
     <Page title="Items listing" actionItems={<CreateNewItemButton />}>
-      <ItemDataTable data={itemsQuery.data ?? []} />
+      <ItemDataTable data={itemsQuery.data ?? []} visibleColumns={{ location: true, description: false }} />
     </Page>
   );
 }

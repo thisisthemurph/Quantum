@@ -15,6 +15,7 @@ export default function ItemDetailsPage() {
   const { listLocations } = useLocationsApi();
 
   const queryClient = useQueryClient();
+
   const itemQuery = useQuery({
     queryKey: ["item", itemId],
     queryFn: () => {
@@ -22,10 +23,13 @@ export default function ItemDetailsPage() {
       return getItem(itemId)
     }
   });
+
+  // TODO: Implement a better way of changing the location of the item.
   const locationsQuery = useQuery({
     queryKey: ["locations"],
-    queryFn: listLocations,
+    queryFn: () => listLocations(),
   });
+
   const itemHistoryQuery = useQuery({
     queryKey: ["item-history", itemId],
     queryFn: () => {

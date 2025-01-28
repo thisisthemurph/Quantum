@@ -1,4 +1,5 @@
 import {CreateLocationRequest, Location} from "@/data/models/location";
+import {ItemWithCurrentLocation} from "@/data/models/item.ts";
 
 export function useLocationsApi() {
   async function listLocations(max?: number, filter?: string): Promise<Location[]> {
@@ -68,5 +69,20 @@ export function useLocationsApi() {
     }
   }
 
-  return { listLocations, getLocation, createLocation, deleteLocation };
+  async function listItemsAtLocation(locationId: string): Promise<ItemWithCurrentLocation[]> {
+    const response = await fetch(`http://localhost:42069/api/v1/location/${locationId}/items`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+
+    throw new Error("Failed to fetch items at location");
+  }
+
+  return { listLocations, getLocation, createLocation, deleteLocation, listItemsAtLocation };
 }

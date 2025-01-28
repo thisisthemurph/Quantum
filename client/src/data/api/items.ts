@@ -1,8 +1,8 @@
-import { Item, ItemHistoryEvent } from "@/data/models/item";
+import {Item, ItemHistoryEvent, ItemWithCurrentLocation} from "@/data/models/item";
 
 
 export function useItemsApi() {
-  async function listItems(): Promise<Item[]> {
+  async function listItems(): Promise<ItemWithCurrentLocation[]> {
     const response = await fetch("http://localhost:42069/api/v1/item", {
       method: "GET",
       headers: {
