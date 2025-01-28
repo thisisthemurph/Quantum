@@ -13,18 +13,25 @@ import (
 
 type LocationHandler struct {
 	locationService *service.LocationService
+	itemService     *service.ItemService
 	logger          *slog.Logger
 }
 
-func NewLocationHandler(locationService *service.LocationService, logger *slog.Logger) *LocationHandler {
+func NewLocationHandler(
+	locationService *service.LocationService,
+	itemService *service.ItemService,
+	logger *slog.Logger,
+) *LocationHandler {
 	return &LocationHandler{
 		locationService: locationService,
+		itemService:     itemService,
 		logger:          logger,
 	}
 }
 
 func (h *LocationHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/location", mf(h.listLocations))
+	mux.HandleFunc("GET /api/v1/location/{locationId}/items", mf(h.listItemsByLocationID))
 	mux.HandleFunc("GET /api/v1/location/{locationId}", mf(h.getLocationByID))
 	mux.HandleFunc("POST /api/v1/location", mf(h.createLocation))
 	mux.HandleFunc("DELETE /api/v1/location/{locationId}", mf(h.deleteLocation))
@@ -40,6 +47,25 @@ func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) 
 	}
 
 	res.JSON(w, locations)
+}
+
+func (h *LocationHandler) listItemsByLocationID(w http.ResponseWriter, r *http.Request) {
+	locationID, err := uuid.Parse(r.PathValue("locationId"))
+
+	if err != nil {
+		h.logger.Error("invalid location id", "error", err)
+		res.Error(w, "invalid location id", http.StatusBadRequest)
+		return
+	}
+
+	items, err := h.itemService.ListByLocationID(locationID)
+	if err != nil {
+		h.logger.Error("error listing items by location id", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	res.JSON(w, items)
 }
 
 func (h *LocationHandler) getLocationByID(w http.ResponseWriter, r *http.Request) {

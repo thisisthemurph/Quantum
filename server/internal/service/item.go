@@ -62,21 +62,43 @@ func (s *ItemService) Get(id uuid.UUID) (dto.ItemResponse, error) {
 	}, nil
 }
 
-func (s *ItemService) List() ([]dto.ItemResponse, error) {
+func (s *ItemService) List() ([]dto.ItemWithCurrentLocationResponse, error) {
 	items, err := s.itemRepo.List()
 	if err != nil {
 		return nil, err
 	}
 
-	var itemsResponse = make([]dto.ItemResponse, len(items))
+	var itemsResponse = make([]dto.ItemWithCurrentLocationResponse, len(items))
 	for i, item := range items {
-		itemsResponse[i] = dto.ItemResponse{
-			ID:          item.ID,
-			Reference:   item.Reference,
-			GroupKey:    item.GroupKey,
-			Description: item.Description,
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
+		itemsResponse[i] = dto.ItemWithCurrentLocationResponse{
+			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel),
+			CurrentLocation: dto.CurrentLocation{
+				ID:          item.LocationID,
+				Name:        item.LocationName,
+				Description: item.LocationDescription,
+			},
+		}
+	}
+
+	return itemsResponse, nil
+}
+
+func (s *ItemService) ListByLocationID(locationID uuid.UUID) ([]dto.ItemWithCurrentLocationResponse, error) {
+	items, err := s.itemRepo.ListByLocationID(locationID)
+	if err != nil {
+		return nil, err
+	}
+
+	var itemsResponse = make([]dto.ItemWithCurrentLocationResponse, len(items))
+	for i, item := range items {
+		itemsResponse[i] = dto.ItemWithCurrentLocationResponse{
+			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel),
+			CurrentLocation: dto.CurrentLocation{
+				ID:          item.LocationID,
+				Name:        item.LocationName,
+				Description: item.LocationDescription,
+				TrackedAt:   item.TrackedAt,
+			},
 		}
 	}
 

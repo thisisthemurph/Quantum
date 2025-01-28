@@ -8,7 +8,8 @@ import (
 
 type ItemRepository interface {
 	GetByID(id uuid.UUID) (model.ItemModel, error)
-	List() ([]model.ItemModel, error)
+	List() ([]model.ItemWithCurrentLocationModel, error)
+	ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error)
 	ListItemGroups(max int, filter string) ([]string, error)
 	GroupKeyExists(groupKey string) (bool, error)
 	Create(item *model.ItemModel) error
@@ -34,9 +35,9 @@ func (r *postgresItemRepository) GetByID(id uuid.UUID) (model.ItemModel, error) 
 	return item, nil
 }
 
-func (r *postgresItemRepository) List() ([]model.ItemModel, error) {
-	stmt := "select * from items;"
-	var items = make([]model.ItemModel, 0)
+func (r *postgresItemRepository) List() ([]model.ItemWithCurrentLocationModel, error) {
+	stmt := "select * from items_with_current_location;"
+	var items = make([]model.ItemWithCurrentLocationModel, 0)
 	if err := r.db.Select(&items, stmt); err != nil {
 		return nil, err
 	}
@@ -56,6 +57,16 @@ func (r *postgresItemRepository) ListItemGroups(max int, filter string) ([]strin
 		return nil, err
 	}
 	return groups, nil
+}
+
+func (r *postgresItemRepository) ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error) {
+	stmt := "select * from items_with_current_location where location_id = $1;"
+
+	var items = make([]model.ItemWithCurrentLocationModel, 0)
+	if err := r.db.Select(&items, stmt, locationID); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (r *postgresItemRepository) GroupKeyExists(groupKey string) (bool, error) {
