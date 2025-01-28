@@ -9,6 +9,7 @@ import { Item } from "@/data/models/item";
 import {Button} from "@/components/ui/button.tsx";
 import {Location} from "@/data/models/location.ts";
 import {TrackItemForm} from "@/pages/item-details/TrackItemForm.tsx";
+import {Link} from "react-router";
 
 interface ItemDetailsProps {
   item: Item;
@@ -22,7 +23,9 @@ export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsP
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{item.reference}</CardTitle>
-          <p className="text-muted-foreground" title="Item group">{item.groupKey}</p>
+          <Button variant="outline" asChild>
+            <Link to={`/items/group/${item.groupKey}`} className="text-muted-foreground" title="Item group">{item.groupKey}</Link>
+          </Button>
         </div>
         <div className="flex justify-between items-start">
           <CardDescription>{item.description ?? "This item does not have a description"}</CardDescription>

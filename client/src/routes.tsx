@@ -7,6 +7,7 @@ import ItemDetailsPage from "@/pages/item-details";
 import LocationListingPage from "@/pages/location-listing";
 import SettingsPage from "@/pages/settings";
 import LocationDetailsPage from "@/pages/location-details";
+import ItemGroupListingPage from "@/pages/item-group-listing";
 
 export default function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function AppRoutes() {
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
         <Route path="/items" element={<ItemListingPage />} />
+        <Route path="/items/group/:groupKey" element={<ItemGroupListingPage />} />
         <Route path="/items/create" element={<CreateItemPage />} />
         <Route path="/items/:itemId" element={<ItemDetailsPage />} />
         <Route path="/locations" element={<LocationListingPage />} />

@@ -41,18 +41,20 @@ const columnNameMapping: { [key: string]: string } = {
   "currentLocation_name": "location",
 }
 
-type HidableColumnName = "updatedAt" | "createdAt" | "description" | "location";
+type HidableColumnName = "updatedAt" | "createdAt" | "description" | "location" | "groupKey";
 
 type VisibleColumnsConfig = {
   location?: boolean;
   description?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
+  groupKey?: boolean;
 }
 
 const DEFAULT_VISIBLE_COLUMN_CONFIG: Record<HidableColumnName, boolean> = {
-  location: true,
   description: true,
+  groupKey: true,
+  location: true,
   createdAt: false,
   updatedAt: false,
 }
@@ -73,10 +75,12 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    description: isVisible("description", visibleColumns?.description),
+    groupKey: isVisible("groupKey", visibleColumns?.groupKey),
     createdAt: isVisible("createdAt", visibleColumns?.createdAt),
     updatedAt: isVisible("updatedAt", visibleColumns?.updatedAt),
-    description: isVisible("description", visibleColumns?.description),
     "currentLocation_name": isVisible("location", visibleColumns?.location),
+
   });
   const [rowSelection, setRowSelection] = useState({});
 
@@ -127,17 +131,21 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
     {
       accessorKey: "groupKey",
       enableHiding: false,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            className="-translate-x-[1rem]"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Group <ArrowUpDown />
-          </Button>
-        )
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Group <ArrowUpDown />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <Button variant="ghost" asChild>
+          <Link to={`/items/group/${row.original.groupKey}`}>
+            {row.getValue("groupKey")}
+          </Link>
+        </Button>
+      ),
     },
     {
       accessorKey: "currentLocation.name",

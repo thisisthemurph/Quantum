@@ -9,7 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 export default function ItemListingPage() {
   const { listItems } = useItemsApi();
 
-  const itemsQuery = useQuery({ queryKey: ["items"], queryFn: listItems });
+  const itemsQuery = useQuery({
+    queryKey: ["items"],
+    queryFn: () => listItems(),
+  });
 
   return (
     <Page title="Items listing" actionItems={<CreateNewItemButton />}>

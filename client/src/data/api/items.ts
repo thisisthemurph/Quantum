@@ -2,8 +2,18 @@ import {Item, ItemHistoryEvent, ItemWithCurrentLocation} from "@/data/models/ite
 
 
 export function useItemsApi() {
-  async function listItems(): Promise<ItemWithCurrentLocation[]> {
-    const response = await fetch("http://localhost:42069/api/v1/item", {
+  async function listItems(groupKey?: string): Promise<ItemWithCurrentLocation[]> {
+    let url = "http://localhost:42069/api/v1/item";
+
+    const params = new URLSearchParams();
+    if (groupKey) {
+      params.append("group", groupKey);
+    }
+    if (params.size > 0) {
+      url = `${url}?${params.toString()}`;
+    }
+
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

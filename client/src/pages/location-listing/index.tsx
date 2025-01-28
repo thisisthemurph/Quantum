@@ -15,7 +15,7 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import { toast } from "sonner";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function LocationListingPage() {
   const { listLocations, createLocation, deleteLocation } = useLocationsApi();
