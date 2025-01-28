@@ -57,8 +57,15 @@ func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
-	items, err := h.itemService.List()
+	groupKeyParam := r.URL.Query().Get("group")
+	var groupKeyFilter *string
+	if groupKeyParam != "" {
+		groupKeyFilter = &groupKeyParam
+	}
+
+	items, err := h.itemService.List(groupKeyFilter)
 	if err != nil {
+		h.logger.Error("error listing items", "error", err)
 		res.InternalServerError(w)
 		return
 	}

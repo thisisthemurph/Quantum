@@ -8,7 +8,7 @@ import (
 
 type ItemRepository interface {
 	GetByID(id uuid.UUID) (model.ItemModel, error)
-	List() ([]model.ItemWithCurrentLocationModel, error)
+	List(groupKey *string) ([]model.ItemWithCurrentLocationModel, error)
 	ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error)
 	ListItemGroups(max int, filter string) ([]string, error)
 	GroupKeyExists(groupKey string) (bool, error)
@@ -35,10 +35,14 @@ func (r *postgresItemRepository) GetByID(id uuid.UUID) (model.ItemModel, error) 
 	return item, nil
 }
 
-func (r *postgresItemRepository) List() ([]model.ItemWithCurrentLocationModel, error) {
-	stmt := "select * from items_with_current_location;"
+func (r *postgresItemRepository) List(groupKey *string) ([]model.ItemWithCurrentLocationModel, error) {
+	stmt := `
+		select * 
+		from items_with_current_location
+		where ($1::text is null or group_key = $1);`
+
 	var items = make([]model.ItemWithCurrentLocationModel, 0)
-	if err := r.db.Select(&items, stmt); err != nil {
+	if err := r.db.Select(&items, stmt, groupKey); err != nil {
 		return nil, err
 	}
 	return items, nil

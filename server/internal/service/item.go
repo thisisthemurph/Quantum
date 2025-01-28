@@ -62,8 +62,8 @@ func (s *ItemService) Get(id uuid.UUID) (dto.ItemResponse, error) {
 	}, nil
 }
 
-func (s *ItemService) List() ([]dto.ItemWithCurrentLocationResponse, error) {
-	items, err := s.itemRepo.List()
+func (s *ItemService) List(groupKeyFilter *string) ([]dto.ItemWithCurrentLocationResponse, error) {
+	items, err := s.itemRepo.List(groupKeyFilter)
 	if err != nil {
 		return nil, err
 	}
