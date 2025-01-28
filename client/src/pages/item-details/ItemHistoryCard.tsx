@@ -20,7 +20,7 @@ interface ItemTrackHistoryProps {
 export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const NUM_ITEMS_ALWAYS_SHOWN = 3
+  const NUM_ITEMS_ALWAYS_SHOWN = 3;
 
   const alwaysVisibleHistory = history.slice(0, NUM_ITEMS_ALWAYS_SHOWN);
   const hiddenHistory = history.slice(NUM_ITEMS_ALWAYS_SHOWN);
@@ -28,7 +28,7 @@ export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Location History</CardTitle>
+        <CardTitle>Item History</CardTitle>
         <CardDescription>A detailed history of where this item has been.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
