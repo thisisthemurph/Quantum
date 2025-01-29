@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { useSettings } from "@/hooks/use-settings.tsx";
 
 type SidebarItem = {
   title: string;
@@ -38,18 +39,19 @@ type UserTrackedItem = {
 
 export type UserTrackedItems = UserTrackedItem[];
 
-const items: SidebarItem[] = [
-  { title: "Home", url: "/", icon: Home },
-  { title: "Items", url: "/items", icon: Package },
-  { title: "Locations", url: "/locations", icon: Map },
-];
-
 interface AppSidebarProps {
   userItems: UserTrackedItems;
 }
 
 export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
   const sidebar = useSidebar();
+  const { terminology } = useSettings();
+
+  const items: SidebarItem[] = [
+    { title: "Home", url: "/", icon: Home },
+    { title: terminology.items, url: "/items", icon: Package },
+    { title: terminology.locations, url: "/locations", icon: Map },
+  ];
 
   return (
     <Sidebar collapsible="icon">
@@ -75,7 +77,7 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
           <SidebarGroupLabel>
             <Tooltip>
               <TooltipTrigger className="flex items-center gap-2">
-                <span>Your items</span>
+                <span>Your {terminology.items.toLowerCase()}</span>
                 <Badge className="rounded-full h-4 justify-center bg-slate-600">
                   {userOwnedItems.length}
                 </Badge>
