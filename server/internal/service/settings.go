@@ -24,6 +24,8 @@ var defaultSettings = dto.SettingsResponse{
 		Items:     "Items",
 		Location:  "Location",
 		Locations: "Locations",
+		Group:     "Group",
+		Groups:    "Groups",
 	},
 }
 
@@ -61,5 +63,11 @@ func ensureSettingsDefaults(s *dto.SettingsResponse) {
 	}
 	if s.Terminology.Locations == "" {
 		s.Terminology.Locations = defaultSettings.Terminology.Locations
+	}
+	if s.Terminology.Group == "" {
+		s.Terminology.Group = defaultSettings.Terminology.Group
+	}
+	if s.Terminology.Groups == "" {
+		s.Terminology.Groups = defaultSettings.Terminology.Groups
 	}
 }

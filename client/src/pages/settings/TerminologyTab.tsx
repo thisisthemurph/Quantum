@@ -1,6 +1,6 @@
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form.tsx";
 import {z} from "zod";
-import {useForm} from "react-hook-form";
+import {useForm, UseFormReturn} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Input} from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ const formSchema = z.object({
   items: z.string(),
   location: z.string(),
   locations: z.string(),
+  group: z.string(),
+  groups: z.string(),
 });
 
 export type TerminologyFormValues = z.infer<typeof formSchema>;
@@ -37,6 +39,8 @@ export function TerminologyTab({ terminology, onUpdate }: TerminologyTabProps) {
       items: "",
       location: "",
       locations: "",
+      group: "",
+      groups: "",
     },
   });
 
@@ -46,6 +50,8 @@ export function TerminologyTab({ terminology, onUpdate }: TerminologyTabProps) {
       items: emptyStringIfDefault("items", terminology.items),
       location: emptyStringIfDefault("location", terminology.location),
       locations: emptyStringIfDefault("locations", terminology.locations),
+      group: emptyStringIfDefault("group", terminology.group),
+      groups: emptyStringIfDefault("groups", terminology.groups),
     });
   }, [terminology, form]);
 
@@ -55,6 +61,8 @@ export function TerminologyTab({ terminology, onUpdate }: TerminologyTabProps) {
       items: defaultIfEmptyString("items", values.items ?? ""),
       location: defaultIfEmptyString("location", values.location ?? ""),
       locations: defaultIfEmptyString("locations", values.locations ?? ""),
+      group: defaultIfEmptyString("group", values.group ?? ""),
+      groups: defaultIfEmptyString("groups", values.groups ?? ""),
     });
   }
 
@@ -63,65 +71,59 @@ export function TerminologyTab({ terminology, onUpdate }: TerminologyTabProps) {
       <h1 className="my-4 text-xl">Terminology settings</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <p className="text-sm text-muted-foreground">An item is an object that can be tracked from one location to another.</p>
-          <div className="flex flex-col sm:flex-row gap-4 py-4">
-            <FormField
-              control={form.control}
-              name="item"
-              render={({field}) => (
-                <FormItem className="w-full">
-                  <FormLabel>Item singular</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Item" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="items"
-              render={({field}) => (
-                <FormItem className="w-full">
-                  <FormLabel>Item plural</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Items" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <p className="text-sm text-muted-foreground">An location is the place an item is tracked to and from.</p>
-          <div className="flex flex-col sm:flex-row gap-4 py-4">
-            <FormField
-              control={form.control}
-              name="location"
-              render={({field}) => (
-                <FormItem className="w-full">
-                  <FormLabel>Location singular</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Location" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="locations"
-              render={({field}) => (
-                <FormItem className="w-full">
-                  <FormLabel>Location plural</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Locations" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+          <TerminologyFormSection form={form} name={"item"} name2={"items"} text="An item is an object that can be track from one location to another." />
+          <TerminologyFormSection form={form} name={"location"} name2={"locations"} text="A location is a place that items can be traced to." />
+          <TerminologyFormSection form={form} name={"group"} name2={"groups"} text="An group is a handy way to group items together You can use this to see where all similar items are." />
 
           <Button type="submit" className="w-full sm:w-auto" disabled={!form.formState.isDirty}>Save</Button>
         </form>
       </Form>
     </>
   );
+}
+
+interface TerminologyFormSectionProps {
+  form: UseFormReturn<TerminologyFormValues>;
+  name: keyof TerminologyFormValues;
+  name2: keyof TerminologyFormValues;
+  text: string;
+}
+
+function TerminologyFormSection({form, name, name2, text}: TerminologyFormSectionProps) {
+  function capitalizeFirstLetter(val: string) {
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+  }
+
+  return (
+    <>
+      <p>{capitalizeFirstLetter(name)}</p>
+      <p className="text-sm text-muted-foreground">{text}</p>
+      <div className="flex flex-col sm:flex-row gap-4 py-4">
+        <FormField
+          control={form.control}
+          name={name}
+          render={({field}) => (
+            <FormItem className="w-full">
+              <FormLabel>{capitalizeFirstLetter(name)} singular</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder={capitalizeFirstLetter(name)} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={name2}
+          render={({field}) => (
+            <FormItem className="w-full">
+              <FormLabel>{capitalizeFirstLetter(name2)} plural</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder={capitalizeFirstLetter(name2)} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+    </>
+  )
 }

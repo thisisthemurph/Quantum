@@ -138,7 +138,7 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Group <ArrowUpDown />
+          {terminology.group} <ArrowUpDown />
         </Button>
       ),
       cell: ({ row }) => (

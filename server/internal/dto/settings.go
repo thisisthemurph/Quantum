@@ -10,6 +10,8 @@ type TerminologySettingsResponse struct {
 	Items     string `json:"items"`
 	Location  string `json:"location"`
 	Locations string `json:"locations"`
+	Group     string `json:"group"`
+	Groups    string `json:"groups"`
 }
 
 type SettingsResponse struct {

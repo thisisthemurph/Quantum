@@ -55,9 +55,9 @@ export function TrackItemForm({ locations, currentLocationName, onSubmit }: Trac
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
                   <Command>
-                    <CommandInput placeholder="Search groups" />
+                    <CommandInput placeholder={`Search ${terminology.groups.toLowerCase()}`} />
                     <CommandList>
-                      <CommandEmpty>No groups found.</CommandEmpty>
+                      <CommandEmpty>No {terminology.groups.toLowerCase()} found.</CommandEmpty>
                       <CommandGroup>
                         {locations?.map((location) => (
                           <CommandItem value={location.id} key={location.id} onSelect={() => form.setValue("locationId", location.id)}>

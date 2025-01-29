@@ -3,6 +3,8 @@ export interface TerminologySettings {
   items: string;
   location: string;
   locations: string;
+  group: string;
+  groups: string;
 }
 
 export interface Settings {
@@ -15,5 +17,7 @@ export const DefaultSettings: Settings = {
     items: "Items",
     location: "Location",
     locations: "Locations",
+    group: "Group",
+    groups: "Groups",
   },
 }

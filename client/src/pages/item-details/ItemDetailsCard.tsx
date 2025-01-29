@@ -10,6 +10,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {Location} from "@/data/models/location.ts";
 import {TrackItemForm} from "@/pages/item-details/TrackItemForm.tsx";
 import {Link} from "react-router";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 interface ItemDetailsProps {
   item: Item;
@@ -18,13 +19,15 @@ interface ItemDetailsProps {
 }
 
 export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsProps) {
+  const { terminology } = useSettings();
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{item.reference}</CardTitle>
           <Button variant="outline" asChild>
-            <Link to={`/items/group/${item.groupKey}`} className="text-muted-foreground" title="Item group">{item.groupKey}</Link>
+            <Link to={`/items/group/${item.groupKey}`} className="text-muted-foreground" title={`${terminology.item} ${terminology.group.toLowerCase()}`}>{item.groupKey}</Link>
           </Button>
         </div>
         <div className="flex justify-between items-start">

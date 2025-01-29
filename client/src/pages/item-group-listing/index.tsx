@@ -18,14 +18,14 @@ export default function ItemGroupListingPage() {
   });
 
   return (
-    <Page title={groupKey ? `Group ${groupKey}` : "Item group listing"}>
-      {groupKey && data && data?.length > 0 && <p className="text-muted-foreground">All {terminology.items.toLowerCase()} associated with group <span className="font-semibold">{groupKey}</span>.</p>}
+    <Page title={groupKey ? `${terminology.group} ${groupKey}` : `${terminology.item} ${terminology.group.toLowerCase()} listing`}>
+      {groupKey && data && data?.length > 0 && <p className="text-muted-foreground">All {terminology.items.toLowerCase()} associated with {terminology.group.toLowerCase()} <span className="font-semibold">{groupKey}</span>.</p>}
       {groupKey && data && data?.length === 0 && (
         <Alert variant="destructive" className="max-w-sm">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Not found!</AlertTitle>
           <AlertDescription>
-            No {terminology.items.toLowerCase()} associated with group <span className="font-semibold">{groupKey}</span>.
+            No {terminology.items.toLowerCase()} associated with {terminology.group.toLowerCase()} <span className="font-semibold">{groupKey}</span>.
           </AlertDescription>
        </Alert>)}
       {isLoading || !data
