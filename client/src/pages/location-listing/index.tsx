@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/alert-dialog.tsx";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 export default function LocationListingPage() {
+  const { terminology } = useSettings();
   const { listLocations, createLocation, deleteLocation } = useLocationsApi();
   const [locationPendingDeletion, setLocationPendingDeletion] = useState<Location | undefined>();
 
@@ -49,7 +51,7 @@ export default function LocationListingPage() {
   }
 
   return (
-    <Page title="Locations listing" actionItems={
+    <Page title={`${terminology.location} listing`} actionItems={
       <CreateNewLocationButton>
         <CreateLocationForm onSubmit={handleCreateLocation} />
       </CreateNewLocationButton>
@@ -61,13 +63,13 @@ export default function LocationListingPage() {
       }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this location?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this {terminology.location.toLowerCase()}?</AlertDialogTitle>
             <AlertDialogDescription className="sr-only">
-              Are you sure you want to delete the {locationPendingDeletion?.name} location?
+              Are you sure you want to delete the {locationPendingDeletion?.name} {terminology.location.toLowerCase()}?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <p>
-            Are you sure you want to delete the <span className="font-semibold underline underline-offset-2">{locationPendingDeletion?.name}</span> location?</p>
+            Are you sure you want to delete the <span className="font-semibold underline underline-offset-2">{locationPendingDeletion?.name}</span> {terminology.location.toLowerCase()}?</p>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction

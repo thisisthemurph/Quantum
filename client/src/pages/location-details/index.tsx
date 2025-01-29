@@ -4,8 +4,10 @@ import { useParams } from "react-router";
 import { useLocationsApi } from "@/data/api/locations.ts";
 import { LocationDetailsCard } from "@/pages/location-details/LocationDetailsCard.tsx";
 import { ItemDataTable } from "@/components/ItemDataTable.tsx";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 export default function LocationDetailsPage() {
+  const { terminology } = useSettings();
   const { locationId } = useParams();
   const { getLocation, listItemsAtLocation } = useLocationsApi();
 
@@ -26,7 +28,7 @@ export default function LocationDetailsPage() {
   });
 
   return (
-    <Page title="Location details">
+    <Page title={`${terminology.location} details`}>
       {isLocationLoading || !location ? <p>Loading...</p> : <LocationDetailsCard location={location} itemCount={420} />}
       {itemsQuery.isLoading || !itemsQuery.data
         ? <p>Loading...</p>

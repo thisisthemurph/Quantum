@@ -8,6 +8,7 @@ import {cn} from "@/lib/utils.ts";
 import {Check, ChevronsUpDown} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Location} from "@/data/models/location";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 const formSchema = z.object({
   locationId: z.string().min(1, "A location ID must be provided"),
@@ -22,6 +23,7 @@ interface TrackItemFormProps {
 }
 
 export function TrackItemForm({ locations, currentLocationName, onSubmit }: TrackItemFormProps) {
+  const { terminology } = useSettings();
   const form = useForm<TrackItemFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,7 +81,7 @@ export function TrackItemForm({ locations, currentLocationName, onSubmit }: Trac
           )}
         />
 
-        <Button type="submit">Track Item</Button>
+        <Button type="submit">Track {terminology.item.toLowerCase()}</Button>
       </form>
     </Form>
   );

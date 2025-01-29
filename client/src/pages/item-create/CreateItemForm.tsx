@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Location } from "@/data/models/location";
 import { useState } from "react";
 import { CommandDialogCombobox } from "@/components/CommandDialogCombobox.tsx";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 const formSchema = z.object({
   reference: z.string().min(1, "A reference must be provided"),
@@ -37,6 +38,7 @@ export function CreateItemForm({
 }: CreateItemFormProps) {
   const [groupCommandDialogOpen, setGroupCommandDialogOpen] = useState(false);
   const [locationCommandDialogOpen, setLocationCommandDialogOpen] = useState(false);
+  const { terminology } = useSettings();
 
   const form = useForm<CreateItemFormValues>({
     resolver: zodResolver(formSchema),
@@ -59,7 +61,7 @@ export function CreateItemForm({
               <FormItem className="w-full">
                 <FormLabel>Reference</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="A unique reference for your item"/>
+                  <Input {...field} placeholder={`A unique reference for your ${terminology.item.toLowerCase()}`}/>
                 </FormControl>
               </FormItem>
             )}
@@ -117,7 +119,7 @@ export function CreateItemForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="A short description for the item"/>
+                <Input {...field} placeholder={`A short description for the ${terminology.item.toLowerCase()}`}/>
               </FormControl>
             </FormItem>
           )}
@@ -138,7 +140,7 @@ export function CreateItemForm({
                   >
                     {field.value?.length > 0
                       ? locations.find((location) => location.id === field.value)?.name
-                      : "Select a location"}
+                      : `Select a ${terminology.location.toLowerCase()}`}
                   </Button>
                 </div>
               </FormControl>
@@ -148,8 +150,8 @@ export function CreateItemForm({
                   if (!open) onLocationSearched("");
                   setLocationCommandDialogOpen(open);
                 }}
-                label={"Location"}
-                labelPlural={"Locations"}
+                label={terminology.location}
+                labelPlural={terminology.locations}
                 items={locations}
                 onSearch={onLocationSearched}
                 onItemSelected={(location) => {
@@ -166,7 +168,7 @@ export function CreateItemForm({
 
         <div className="w-full flex justify-end">
           <Button type="submit" size="sm" className="w-full sm:w-auto">
-            Create item
+            Create {terminology.item.toLowerCase()}
           </Button>
         </div>
       </form>

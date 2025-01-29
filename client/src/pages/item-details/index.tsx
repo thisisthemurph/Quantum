@@ -8,11 +8,13 @@ import { ItemHistoryCard } from "./ItemHistoryCard";
 import { EditItemButton } from "./EditItemButton";
 import { useLocationsApi } from "@/data/api/locations.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 export default function ItemDetailsPage() {
   const { itemId } = useParams();
   const { getItem, getItemHistory, trackItem } = useItemsApi();
   const { listLocations } = useLocationsApi();
+  const { terminology } = useSettings();
 
   const queryClient = useQueryClient();
 
@@ -59,7 +61,7 @@ export default function ItemDetailsPage() {
   }
 
   return (
-    <Page title="Item Details" actionItems={<EditItemButton />}>
+    <Page title={`${terminology.item} Details`} actionItems={<EditItemButton />}>
       <section className="flex flex-col gap-4">
         {itemQuery.isLoading || !itemQuery.data ? <p>Loading item</p> : <ItemDetailsCard item={itemQuery.data} locations={locationsQuery.data ?? []} onItemTracked={handleTrackedItem} />}
         {itemHistoryQuery.isLoading ? <p>Loading history</p> : <ItemHistoryCard history={itemHistoryQuery.data ?? []} />}

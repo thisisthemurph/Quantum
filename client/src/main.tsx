@@ -6,18 +6,21 @@ import { TooltipProvider } from './components/ui/tooltip.tsx'
 import { Toaster } from 'sonner';
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import AppRoutes from "@/routes.tsx";
+import {SettingsProvider} from "@/stores/SettingsProvider.tsx";
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <TooltipProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </TooltipProvider>
-    <Toaster />
+    <SettingsProvider>
+      <TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </TooltipProvider>
+      <Toaster />
+    </SettingsProvider>
   </StrictMode>,
 )

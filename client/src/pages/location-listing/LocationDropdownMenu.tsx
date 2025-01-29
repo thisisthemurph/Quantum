@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 interface LocationDropdownMenuProps {
   locationId: string;
@@ -19,6 +20,8 @@ interface LocationDropdownMenuProps {
 }
 
 export function LocationDropdownMenu({ locationId, onCopyDescription, onCopyName, onDelete }: LocationDropdownMenuProps) {
+  const { terminology } = useSettings();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -34,25 +37,25 @@ export function LocationDropdownMenu({ locationId, onCopyDescription, onCopyName
           className="flex justify-between items-center gap-4 cursor-pointer"
           onClick={onCopyName}
         >
-          Copy location reference
+          Copy {terminology.location.toLowerCase()} reference
           <Copy strokeWidth={1} className="w-4 h-4" />
         </DropdownMenuItem>
         <DropdownMenuItem
           className="flex justify-between items-center gap-4 cursor-pointer"
           onClick={onCopyDescription}
         >
-          Copy location description
+          Copy {terminology.location.toLowerCase()} description
           <Copy strokeWidth={1} className="w-4 h-4" />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="flex justify-between items-center gap-4 cursor-pointer" asChild>
           <Link to={`/locations/${locationId}`}>
-            <span>View location</span>
+            <span>View {terminology.location.toLowerCase()}</span>
             <Eye strokeWidth={1} className="w-4 h-4" />
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="flex justify-between items-center gap-4 cursor-pointer" onMouseDown={onDelete}>
-          Delete location
+          Delete {terminology.location.toLowerCase()}
           <Trash strokeWidth={1} className="w-4 h-4" />
         </DropdownMenuItem>
       </DropdownMenuContent>

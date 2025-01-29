@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 const columnNameMapping: { [key: string]: string } = {
   "createdAt": "created",
@@ -39,6 +40,7 @@ export function LocationDataTable({ data, onDelete }: LocationDataTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ updatedAt: false });
   const [rowSelection, setRowSelection] = useState({});
+  const { terminology } = useSettings();
 
   const columns: ColumnDef<Location>[] = [
     {
@@ -146,7 +148,7 @@ export function LocationDataTable({ data, onDelete }: LocationDataTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter locations by name..."
+          placeholder={`Filter ${terminology.locations.toLowerCase()} by name...`}
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)

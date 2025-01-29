@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 interface ItemTrackHistoryProps {
   history: ItemHistoryEvent[];
@@ -19,6 +20,7 @@ interface ItemTrackHistoryProps {
 
 export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { terminology } = useSettings();
 
   const NUM_ITEMS_ALWAYS_SHOWN = 3;
 
@@ -28,8 +30,8 @@ export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Item History</CardTitle>
-        <CardDescription>A detailed history of where this item has been.</CardDescription>
+        <CardTitle>{terminology.item} History</CardTitle>
+        <CardDescription>A detailed history of where this {terminology.item.toLowerCase()} has been.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>

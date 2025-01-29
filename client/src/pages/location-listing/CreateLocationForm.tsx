@@ -5,6 +5,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel} from "@/components/ui
 import {Input} from "@/components/ui/input.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 const formSchema = z.object({
   name: z.string().min(1, "A name must be provided"),
@@ -18,6 +19,8 @@ interface CreateLocationFormProps {
 }
 
 export function CreateLocationForm({ onSubmit }: CreateLocationFormProps) {
+  const { terminology } = useSettings();
+
   const form = useForm<CreateLocationFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,8 +36,8 @@ export function CreateLocationForm({ onSubmit }: CreateLocationFormProps) {
         onSubmit={form.handleSubmit((values) => onSubmit(values))}
       >
         <section>
-          <h2 className="text-lg font-semibold">Create a new location</h2>
-          <p className="text-sm text-slate-600">Create a new location to track items to...</p>
+          <h2 className="text-lg font-semibold">Create a new {terminology.location}</h2>
+          <p className="text-sm text-slate-600">Create a new {terminology.location} to track items to...</p>
         </section>
 
         <FormField

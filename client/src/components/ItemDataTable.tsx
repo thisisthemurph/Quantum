@@ -34,12 +34,7 @@ import {
 import { ItemWithCurrentLocation } from "@/data/models/item.ts";
 import { ItemDropdownMenu } from "@/components/ItemDropdownMenu.tsx";
 import { toast } from "sonner";
-
-const columnNameMapping: { [key: string]: string } = {
-  "createdAt": "created",
-  "updatedAt": "updated",
-  "currentLocation_name": "location",
-}
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 type HidableColumnName = "updatedAt" | "createdAt" | "description" | "location" | "groupKey";
 
@@ -72,6 +67,7 @@ function isVisible(column: HidableColumnName, visibility: boolean | undefined): 
 }
 
 export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONFIG }: ItemDataTableProps) {
+  const { terminology } = useSettings();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -83,6 +79,12 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
 
   });
   const [rowSelection, setRowSelection] = useState({});
+
+  const columnNameMapping: { [key: string]: string } = {
+    "createdAt": "created",
+    "updatedAt": "updated",
+    "currentLocation_name": terminology.location,
+  }
 
   const columns: ColumnDef<ItemWithCurrentLocation>[] = [
     {
@@ -154,7 +156,7 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Location <ArrowUpDown />
+          {terminology.location} <ArrowUpDown />
         </Button>
       ),
       cell: ({ row }) => (

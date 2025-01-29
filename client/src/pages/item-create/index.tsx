@@ -6,12 +6,14 @@ import {useLocationsApi} from "@/data/api/locations.ts";
 import {useQuery} from "@tanstack/react-query";
 import {useState} from "react";
 import {useMostRecentlyUsed} from "@/hooks/use-mru.ts";
+import {useSettings} from "@/hooks/use-settings.tsx";
 
 export default function CreateItemPage() {
   const navigate = useNavigate();
   const { getItemGroups, createItem, groupKeysExist } = useItemsApi();
   const { listLocations } = useLocationsApi();
   const { recentGroups, addGroupToMru } = useMostRecentlyUsed();
+  const { terminology } = useSettings()
 
   const [groupsFilter, setGroupsFilter] = useState("");
   const [locationsFilter, setLocationsFilter] = useState("");
@@ -47,7 +49,7 @@ export default function CreateItemPage() {
   }
 
   return (
-    <Page title="Create a new item">
+    <Page title={`Create a new ${terminology.item.toLowerCase()}`}>
       <CreateItemForm
         groups={groupsQuery.data ?? []}
         recentGroups={recentlyUsedGroupsQuery.data ?? []}
