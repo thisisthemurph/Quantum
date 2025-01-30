@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar, UserTrackedItems } from "@/components/app-sidebar";
+import { AppSidebar, UserTrackedItems } from "@/components/AppSidebar.tsx";
 import { useItemsApi } from "@/data/api/items";
 import { useEffect, useState } from "react";
 

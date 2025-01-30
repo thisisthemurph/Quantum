@@ -782,6 +782,14 @@ body {
   margin-top: 1rem;
 }
 
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
 .flex {
   display: flex;
 }
@@ -875,6 +883,10 @@ body {
   height: 100svh;
 }
 
+.h-14 {
+  height: 3.5rem;
+}
+
 .max-h-\[300px\] {
   max-height: 300px;
 }
@@ -953,6 +965,10 @@ body {
 
 .w-full {
   width: 100%;
+}
+
+.w-14 {
+  width: 3.5rem;
 }
 
 .min-w-0 {
@@ -1098,6 +1114,18 @@ body {
 
 .gap-4 {
   gap: 1rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.gap-16 {
+  gap: 4rem;
 }
 
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
@@ -1273,6 +1301,10 @@ body {
   background-color: transparent;
 }
 
+.bg-sidebar-accent {
+  background-color: hsl(var(--sidebar-accent));
+}
+
 .fill-current {
   fill: currentColor;
 }
@@ -1295,6 +1327,10 @@ body {
 
 .p-6 {
   padding: 1.5rem;
+}
+
+.p-8 {
+  padding: 2rem;
 }
 
 .px-0 {
@@ -1474,6 +1510,10 @@ body {
   letter-spacing: 0.1em;
 }
 
+.tracking-wider {
+  letter-spacing: 0.05em;
+}
+
 .text-card-foreground {
   color: hsl(var(--card-foreground));
 }
@@ -1535,6 +1575,15 @@ body {
 .text-slate-600 {
   --tw-text-opacity: 1;
   color: rgb(71 85 105 / var(--tw-text-opacity, 1));
+}
+
+.text-red-500 {
+  --tw-text-opacity: 1;
+  color: rgb(239 68 68 / var(--tw-text-opacity, 1));
+}
+
+.text-sidebar-accent-foreground {
+  color: hsl(var(--sidebar-accent-foreground));
 }
 
 .underline {
@@ -1836,6 +1885,11 @@ body {
 
 .hover\:text-sidebar-accent-foreground:hover {
   color: hsl(var(--sidebar-accent-foreground));
+}
+
+.hover\:text-black:hover {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity, 1));
 }
 
 .hover\:underline:hover {
@@ -2234,6 +2288,16 @@ body {
   height: 2rem !important;
 }
 
+.group[data-collapsible="icon"] .group-data-\[collapsible\=icon\]\:\!size-16 {
+  width: 4rem !important;
+  height: 4rem !important;
+}
+
+.group[data-collapsible="icon"] .group-data-\[collapsible\=icon\]\:\!size-6 {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
 .group[data-collapsible="icon"] .group-data-\[collapsible\=icon\]\:w-\[--sidebar-width-icon\] {
   width: var(--sidebar-width-icon);
 }
@@ -2460,6 +2524,16 @@ body {
 .\[\&\>svg\]\:size-4>svg {
   width: 1rem;
   height: 1rem;
+}
+
+.\[\&\>svg\]\:size-8>svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.\[\&\>svg\]\:size-6>svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .\[\&\>svg\]\:shrink-0>svg {
