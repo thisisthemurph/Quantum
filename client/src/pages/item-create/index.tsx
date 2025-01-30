@@ -1,4 +1,4 @@
-import {Page} from "@/components/page";
+import {Page} from "@/components/Page.tsx";
 import {useItemsApi} from "@/data/api/items.ts";
 import {useNavigate} from "react-router";
 import {CreateItemForm, CreateItemFormValues} from "@/pages/item-create/CreateItemForm.tsx";

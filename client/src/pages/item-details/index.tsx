@@ -1,4 +1,4 @@
-import { Page } from "@/components/page";
+import { Page } from "@/components/Page.tsx";
 import { useParams } from "react-router";
 import { useItemsApi } from "@/data/api/items";
 import { toast } from "sonner";

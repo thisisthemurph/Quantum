@@ -1,5 +1,5 @@
 import { ItemDataTable } from "../../components/ItemDataTable.tsx";
-import { Page } from "@/components/page";
+import { Page } from "@/components/Page.tsx";
 import { useParams } from "react-router";
 import { useItemsApi } from "@/data/api/items";
 import { useQuery } from "@tanstack/react-query";

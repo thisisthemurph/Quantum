@@ -1,4 +1,4 @@
-import { Page } from "@/components/page";
+import { Page } from "@/components/Page.tsx";
 import { LocationDataTable } from "@/pages/location-listing/LocationDataTable";
 import { useLocationsApi } from "@/data/api/locations.ts";
 import { useState } from "react";

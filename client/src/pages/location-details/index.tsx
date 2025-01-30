@@ -1,4 +1,4 @@
-import { Page } from "@/components/page";
+import { Page } from "@/components/Page.tsx";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { useLocationsApi } from "@/data/api/locations.ts";
