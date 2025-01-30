@@ -1,11 +1,12 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
 interface PageProps {
   title: string;
-  children: React.ReactNode;
-  actionItems?: React.ReactNode;
+  children: ReactNode;
+  actionItems?: ReactNode;
   className?: string;
 }
 
