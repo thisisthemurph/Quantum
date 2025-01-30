@@ -14,14 +14,14 @@ export function CreateNewLocationButton({ children }: CreateNewLocationButtonPro
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" className="cursor-pointer" asChild>
+        <Button className="cursor-pointer" asChild>
           <div>
-            <MapPlus strokeWidth={1} className="w-5 h-5" />
+            <MapPlus />
             <span>Create new {terminology.location.toLowerCase()}</span>
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="mx-4">{children}</PopoverContent>
+      <PopoverContent className="mx-4 w-94">{children}</PopoverContent>
     </Popover>
   )
 }

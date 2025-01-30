@@ -20,10 +20,16 @@ export function LocationDetailsCard({ location, itemCount }: LocationDetailsCard
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>{location.name}</CardTitle>
-          <Badge className="text-xs font-mono tracking-tight px-1">{itemCount} {terminology.items.toLowerCase()}</Badge>
+          <CardTitle className="text-xl">{location.name}</CardTitle>
+          <Badge className="text-xs font-mono tracking-tight px-1">
+            {itemCount > 0
+              ? `${itemCount} ${terminology.items.toLowerCase()}`
+              : `Empty ${terminology.location.toLowerCase()}`}
+          </Badge>
         </div>
-        <CardDescription>{location.description ?? "This location does not have a description"}</CardDescription>
+        <CardDescription className="text-lg">
+          {location.description ?? "This location does not have a description"}
+        </CardDescription>
       </CardHeader>
     </Card>
   );

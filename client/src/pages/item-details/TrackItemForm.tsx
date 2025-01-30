@@ -34,7 +34,7 @@ export function TrackItemForm({ locations, currentLocationName, onSubmit }: Trac
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit((values) => onSubmit(values))}
-        className="flex items-start gap-2"
+        className="flex items-center gap-2"
       >
         <FormField
           control={form.control}

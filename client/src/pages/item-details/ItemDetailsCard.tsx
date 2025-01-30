@@ -11,6 +11,7 @@ import {Location} from "@/data/models/location.ts";
 import {TrackItemForm} from "@/pages/item-details/TrackItemForm.tsx";
 import {Link} from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
+import {Box} from "lucide-react";
 
 interface ItemDetailsProps {
   item: Item;
@@ -25,17 +26,26 @@ export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsP
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>{item.reference}</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Box size={25} strokeWidth={1} />
+            <div className="h-full py-2">{item.reference}</div>
+          </CardTitle>
           <Button variant="outline" asChild>
-            <Link to={`/items/group/${item.groupKey}`} className="text-muted-foreground" title={`${terminology.item} ${terminology.group.toLowerCase()}`}>{item.groupKey}</Link>
+            <Link
+              to={`/items/group/${item.groupKey}`}
+              className="text-muted-foreground"
+              title={`${terminology.item} ${terminology.group.toLowerCase()}`}
+            >
+              {item.groupKey}
+            </Link>
           </Button>
         </div>
         <div className="flex justify-between items-start">
-          <CardDescription>{item.description ?? "This item does not have a description"}</CardDescription>
+          <CardDescription className="text-lg">{item.description ?? "This item does not have a description"}</CardDescription>
         </div>
       </CardHeader>
       <CardFooter>
-        <section className="w-full flex justify-between gap-2">
+        <section className="w-full flex justify-between items-end gap-2">
           <Button variant="outline">Track to me</Button>
           <TrackItemForm currentLocationName={item.currentLocation.name} locations={locations} onSubmit={onItemTracked}/>
         </section>

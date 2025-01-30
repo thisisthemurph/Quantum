@@ -29,7 +29,7 @@ export default function LocationDetailsPage() {
 
   return (
     <Page title={`${terminology.location} details`}>
-      {isLocationLoading || !location ? <p>Loading...</p> : <LocationDetailsCard location={location} itemCount={420} />}
+      {isLocationLoading || !location ? <p>Loading...</p> : <LocationDetailsCard location={location} itemCount={itemsQuery.data?.length ?? 0} />}
       {itemsQuery.isLoading || !itemsQuery.data
         ? <p>Loading...</p>
         : <ItemDataTable data={itemsQuery.data} visibleColumns={{ location: false }} />}
