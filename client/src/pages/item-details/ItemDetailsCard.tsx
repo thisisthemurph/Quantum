@@ -45,7 +45,7 @@ export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsP
         </div>
       </CardHeader>
       <CardFooter>
-        <section className="w-full flex justify-between items-end gap-2">
+        <section className="w-full flex flex-col sm:flex-row fle justify-between items-end gap-2">
           <Button variant="outline">Track to me</Button>
           <TrackItemForm currentLocationName={item.currentLocation.name} locations={locations} onSubmit={onItemTracked}/>
         </section>
