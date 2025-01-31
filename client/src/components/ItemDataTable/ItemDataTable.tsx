@@ -1,8 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { format } from 'date-fns';
+import { useEffect, useState } from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -13,9 +10,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
-import { Checkbox } from "@/components/ui/checkbox.tsx";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -32,11 +28,11 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { ItemWithCurrentLocation } from "@/data/models/item.ts";
-import { ItemDropdownMenu } from "@/components/ItemDropdownMenu.tsx";
-import { toast } from "sonner";
-import {useSettings} from "@/hooks/use-settings.tsx";
+import { useSettings } from "@/hooks/use-settings.tsx";
+import { useItemDataTableColumns } from "@/components/ItemDataTable/useItemDataTableColumns.tsx";
+import { useMediaQuery } from "@/hooks/useMediaQuery.ts";
 
-type HidableColumnName = "updatedAt" | "createdAt" | "description" | "location" | "groupKey";
+type HideableColumnName = "updatedAt" | "createdAt" | "description" | "location" | "groupKey";
 
 type VisibleColumnsConfig = {
   location?: boolean;
@@ -46,12 +42,19 @@ type VisibleColumnsConfig = {
   groupKey?: boolean;
 }
 
-const DEFAULT_VISIBLE_COLUMN_CONFIG: Record<HidableColumnName, boolean> = {
-  description: true,
+const DEFAULT_VISIBLE_COLUMN_CONFIG: Record<HideableColumnName, boolean> = {
+  description: false,
   groupKey: true,
   location: true,
-  createdAt: false,
-  updatedAt: false,
+  createdAt: true,
+  updatedAt: true,
+}
+
+function isVisible(column: HideableColumnName, visibility: boolean | undefined): boolean {
+  if (visibility === undefined) {
+    return DEFAULT_VISIBLE_COLUMN_CONFIG[column];
+  }
+  return visibility;
 }
 
 type ItemDataTableProps = {
@@ -59,15 +62,12 @@ type ItemDataTableProps = {
   data: ItemWithCurrentLocation[];
 }
 
-function isVisible(column: HidableColumnName, visibility: boolean | undefined): boolean {
-  if (visibility === undefined) {
-    return DEFAULT_VISIBLE_COLUMN_CONFIG[column];
-  }
-  return visibility;
-}
-
 export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONFIG }: ItemDataTableProps) {
   const { terminology } = useSettings();
+  const isMediumScreenOrSmaller = useMediaQuery("(max-width: 768px)");
+  const columns = useItemDataTableColumns();
+
+  const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -76,139 +76,23 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
     createdAt: isVisible("createdAt", visibleColumns?.createdAt),
     updatedAt: isVisible("updatedAt", visibleColumns?.updatedAt),
     "currentLocation_name": isVisible("location", visibleColumns?.location),
-
   });
-  const [rowSelection, setRowSelection] = useState({});
+
+  useEffect(() => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      "groupKey": !isMediumScreenOrSmaller,
+      "updatedAt": !isMediumScreenOrSmaller,
+      "currentLocation_trackedAt": !isMediumScreenOrSmaller,
+    }));
+  }, [isMediumScreenOrSmaller]);
 
   const columnNameMapping: { [key: string]: string } = {
     "createdAt": "created",
     "updatedAt": "updated",
     "currentLocation_name": terminology.location,
-  }
-
-  const columns: ColumnDef<ItemWithCurrentLocation>[] = [
-    {
-      id: "select",
-      enableSorting: false,
-      enableHiding: false,
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-    },
-    {
-      accessorKey: "reference",
-      enableHiding: false,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Reference <ArrowUpDown />
-          </Button>
-        )
-      },
-      cell: ({ row }) => (
-        <Button variant="ghost" asChild>
-          <Link to={`/items/${row.original.id}`}>
-            {row.getValue("reference")}
-          </Link>
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "groupKey",
-      enableHiding: false,
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {terminology.group} <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <Button variant="ghost" asChild>
-          <Link to={`/items/group/${row.original.groupKey}`}>
-            {row.getValue("groupKey")}
-          </Link>
-        </Button>
-      ),
-    },
-    {
-      accessorKey: "currentLocation.name",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {terminology.location} <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <Button variant="ghost" asChild>
-          <Link to={`/locations/${row.original.currentLocation.id}`}>
-            {row.getValue("currentLocation_name")}
-          </Link>
-        </Button>
-      )
-    },
-    {
-      accessorKey: "description",
-      header: () => <div>Description</div>,
-    },
-    {
-      accessorKey: "createdAt",
-      header: () => <div>Created</div>,
-      cell: ({ row }) => <div>{format(new Date(row.getValue("createdAt")), "PPP")}</div>,
-    },
-    {
-      accessorKey: "updatedAt",
-      header: () => <div>Updated</div>,
-      cell: ({ row }) => <div>{format(new Date(row.getValue("updatedAt")), "PPP")}</div>,
-    },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => (
-        <ItemDropdownMenu
-          itemId={row.original.id}
-          onTrackToSelf={() => {
-            toast.error("Item tracking is not currently implemented");
-          }}
-          onCopyReference={() => {
-            navigator.clipboard.writeText(row.original.reference)
-              .then(() => toast.success(`Reference ${row.original.reference} copied to clipboard`));
-          }}
-          onCopyDescription={() => {
-            if (!row.original.description) {
-              toast.warning("No description to copy");
-              return;
-            }
-            navigator.clipboard.writeText(row.original.description)
-              .then(() => toast.success("Description copied to clipboard"));
-          }}
-          onDeleteItem={() => {
-            toast.error("Item deletion is not currently implemented");
-          }}
-        />
-      ),
-    },
-  ];
+    "currentLocation_trackedAt": "Tracked",
+  };
 
   const table = useReactTable({
     data,
@@ -295,7 +179,7 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell className="min-w-0" key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

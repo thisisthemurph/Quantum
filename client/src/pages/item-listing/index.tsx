@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ItemDataTable } from "../../components/ItemDataTable.tsx";
+import { ItemDataTable } from "@/components/ItemDataTable/ItemDataTable.tsx";
 import { Page } from "@/components/Page.tsx";
 import { Link } from "react-router";
 import { PackagePlus } from "lucide-react";

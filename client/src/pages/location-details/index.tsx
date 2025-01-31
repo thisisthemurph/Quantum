@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { useLocationsApi } from "@/data/api/locations.ts";
 import { LocationDetailsCard } from "@/pages/location-details/LocationDetailsCard.tsx";
-import { ItemDataTable } from "@/components/ItemDataTable.tsx";
-import {useSettings} from "@/hooks/use-settings.tsx";
+import { ItemDataTable } from "@/components/ItemDataTable/ItemDataTable.tsx";
+import { useSettings } from "@/hooks/use-settings.tsx";
 
 export default function LocationDetailsPage() {
   const { terminology } = useSettings();

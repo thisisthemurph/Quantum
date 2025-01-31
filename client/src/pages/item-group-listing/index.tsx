@@ -1,4 +1,4 @@
-import { ItemDataTable } from "../../components/ItemDataTable.tsx";
+import { ItemDataTable } from "@/components/ItemDataTable/ItemDataTable.tsx";
 import { Page } from "@/components/Page.tsx";
 import { useParams } from "react-router";
 import { useItemsApi } from "@/data/api/items";
