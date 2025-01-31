@@ -1001,10 +1001,6 @@ body {
   width: 100%;
 }
 
-.w-0 {
-  width: 0px;
-}
-
 .min-w-0 {
   min-width: 0px;
 }
@@ -1439,6 +1435,10 @@ body {
   padding-bottom: 1rem;
 }
 
+.pl-4 {
+  padding-left: 1rem;
+}
+
 .pl-6 {
   padding-left: 1.5rem;
 }
@@ -1453,10 +1453,6 @@ body {
 
 .pt-0 {
   padding-top: 0px;
-}
-
-.pl-4 {
-  padding-left: 1rem;
 }
 
 .text-left {
@@ -1513,12 +1509,12 @@ body {
   font-weight: 500;
 }
 
-.font-semibold {
-  font-weight: 600;
-}
-
 .font-normal {
   font-weight: 400;
+}
+
+.font-semibold {
+  font-weight: 600;
 }
 
 .capitalize {
@@ -2406,16 +2402,8 @@ body {
     margin-top: 0px;
   }
 
-  .sm\:inline {
-    display: inline;
-  }
-
   .sm\:flex {
     display: flex;
-  }
-
-  .sm\:hidden {
-    display: none;
   }
 
   .sm\:w-auto {
@@ -2480,10 +2468,6 @@ body {
 @media (min-width: 768px) {
   .md\:block {
     display: block;
-  }
-
-  .md\:inline {
-    display: inline;
   }
 
   .md\:flex {

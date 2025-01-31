@@ -31,38 +31,16 @@ import { ItemWithCurrentLocation } from "@/data/models/item.ts";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { useItemDataTableColumns } from "@/components/ItemDataTable/useItemDataTableColumns.tsx";
 import { useMediaQuery } from "@/hooks/useMediaQuery.ts";
+import { PersistentColumnsContext } from "@/hooks/use-persistent-columns.ts";
 
-type HideableColumnName = "updatedAt" | "createdAt" | "description" | "location" | "groupKey";
-
-type VisibleColumnsConfig = {
-  location?: boolean;
-  description?: boolean;
-  createdAt?: boolean;
-  updatedAt?: boolean;
-  groupKey?: boolean;
-}
-
-const DEFAULT_VISIBLE_COLUMN_CONFIG: Record<HideableColumnName, boolean> = {
-  description: false,
-  groupKey: true,
-  location: true,
-  createdAt: true,
-  updatedAt: true,
-}
-
-function isVisible(column: HideableColumnName, visibility: boolean | undefined): boolean {
-  if (visibility === undefined) {
-    return DEFAULT_VISIBLE_COLUMN_CONFIG[column];
-  }
-  return visibility;
-}
+type HideableColumnName = "updated" | "created" | "description" | "location" | "tracked" | "groupKey";
 
 type ItemDataTableProps = {
-  visibleColumns?: VisibleColumnsConfig;
   data: ItemWithCurrentLocation[];
+  persistentColumns?: PersistentColumnsContext<HideableColumnName>;
 }
 
-export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONFIG }: ItemDataTableProps) {
+export function ItemDataTable({ data, persistentColumns }: ItemDataTableProps) {
   const { terminology } = useSettings();
   const isMediumScreenOrSmaller = useMediaQuery("(max-width: 768px)");
   const columns = useItemDataTableColumns();
@@ -71,27 +49,32 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    description: isVisible("description", visibleColumns?.description),
-    groupKey: isVisible("groupKey", visibleColumns?.groupKey),
-    createdAt: isVisible("createdAt", visibleColumns?.createdAt),
-    updatedAt: isVisible("updatedAt", visibleColumns?.updatedAt),
-    "currentLocation_name": isVisible("location", visibleColumns?.location),
+    description: persistentColumns?.columns.description ?? false,
+    groupKey: !isMediumScreenOrSmaller,
+    createdAt: persistentColumns?.columns.created ?? true,
+    updatedAt: !isMediumScreenOrSmaller && (persistentColumns?.columns.updated ?? true),
+    "currentLocation_name": !isMediumScreenOrSmaller && (persistentColumns?.columns.tracked ?? true),
   });
 
   useEffect(() => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      "groupKey": !isMediumScreenOrSmaller,
-      "updatedAt": !isMediumScreenOrSmaller,
-      "currentLocation_trackedAt": !isMediumScreenOrSmaller,
-    }));
-  }, [isMediumScreenOrSmaller]);
+    setColumnVisibility((prev) => {
+      return {
+        ...prev,
+        "groupKey": !isMediumScreenOrSmaller,
+        "currentLocation_name": persistentColumns?.columns.location ?? true,
+        "description": persistentColumns?.columns.description ?? false,
+        "createdAt": persistentColumns?.columns.created ?? true,
+        "updatedAt": !isMediumScreenOrSmaller && (persistentColumns?.columns.updated ?? true),
+        "currentLocation_trackedAt": !isMediumScreenOrSmaller && (persistentColumns?.columns.tracked ?? true),
+      }
+    });
+  }, [isMediumScreenOrSmaller, persistentColumns]);
 
   const columnNameMapping: { [key: string]: string } = {
     "createdAt": "created",
     "updatedAt": "updated",
-    "currentLocation_name": terminology.location,
-    "currentLocation_trackedAt": "Tracked",
+    "currentLocation_name": terminology.location.toLowerCase(),
+    "currentLocation_trackedAt": "tracked",
   };
 
   const table = useReactTable({
@@ -135,16 +118,19 @@ export function ItemDataTable({ data, visibleColumns=DEFAULT_VISIBLE_COLUMN_CONF
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                const columnName = columnNameMapping[column.id] ?? column.id;
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+                    onCheckedChange={(displayColumn) => {
+                      column.toggleVisibility(displayColumn);
+                      if (persistentColumns)
+                        persistentColumns.setColumnVisibility(columnName as HideableColumnName, displayColumn);
+                    }}
                   >
-                    {columnNameMapping[column.id] ?? column.id}
+                    {columnName}
                   </DropdownMenuCheckboxItem>
                 )
               })}

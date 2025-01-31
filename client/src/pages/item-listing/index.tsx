@@ -6,10 +6,22 @@ import { PackagePlus } from "lucide-react";
 import { useItemsApi } from "@/data/api/items";
 import { useQuery } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/use-settings.tsx";
+import { usePersistentColumns } from "@/hooks/use-persistent-columns.ts";
+
+const visibleColumns = {
+  location: true,
+  description: false,
+  groupKey: true,
+  tracked: true,
+  created: true,
+  updated: true,
+};
 
 export default function ItemListingPage() {
   const { listItems } = useItemsApi();
   const { terminology } = useSettings();
+  const persistentColumns = usePersistentColumns(
+    { key: "items-listing", defaults: visibleColumns });
 
   const itemsQuery = useQuery({
     queryKey: ["items"],
@@ -18,7 +30,7 @@ export default function ItemListingPage() {
 
   return (
     <Page title={`${terminology.item} listing`} actionItems={<CreateNewItemButton text={`Create new ${terminology.item.toLowerCase()}`} />}>
-      <ItemDataTable data={itemsQuery.data ?? []} visibleColumns={{ location: true, description: false }} />
+      <ItemDataTable data={itemsQuery.data ?? []} persistentColumns={persistentColumns} />
     </Page>
   );
 }
