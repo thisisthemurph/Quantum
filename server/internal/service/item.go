@@ -76,6 +76,7 @@ func (s *ItemService) List(groupKeyFilter *string) ([]dto.ItemWithCurrentLocatio
 				ID:          item.LocationID,
 				Name:        item.LocationName,
 				Description: item.LocationDescription,
+				TrackedAt:   item.TrackedAt,
 			},
 		}
 	}
