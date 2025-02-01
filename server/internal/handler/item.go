@@ -45,6 +45,11 @@ func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 }
 
 func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	questionID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid question id", "error", err)
@@ -65,6 +70,11 @@ func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	groupKeyParam := r.URL.Query().Get("group")
 	var groupKeyFilter *string
 	if groupKeyParam != "" {
@@ -82,6 +92,11 @@ func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	filters := getFiltersFromRequest(r)
 	if filters.Max == nil {
 		defaultMaxFilter := 10
@@ -99,6 +114,12 @@ func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
+	userID, authed := currentUserID(r)
+	if !authed {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var item dto.CreateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		res.Error(w, "error decoding item", http.StatusBadRequest)
@@ -110,7 +131,7 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newItem, err := h.itemService.Create(item)
+	newItem, err := h.itemService.Create(userID, item)
 	if err != nil {
 		h.logger.Error("error creating item", "error", err)
 		res.InternalServerError(w)
@@ -121,6 +142,12 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
+	userID, authed := currentUserID(r)
+	if !authed {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
@@ -135,7 +162,7 @@ func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.itemService.TrackItem(itemID, locationID); err != nil {
+	if err := h.itemService.TrackItem(userID, itemID, locationID); err != nil {
 		h.logger.Error("error tracking item", "error", err)
 		res.InternalServerError(w)
 		return
@@ -145,6 +172,11 @@ func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
@@ -163,6 +195,11 @@ func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
@@ -201,6 +238,11 @@ func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	groupParams := r.URL.Query().Get("groups")
 	groupsKeys := strings.Split(groupParams, ",")
 

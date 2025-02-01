@@ -10,8 +10,8 @@ import (
 type ItemHistoryRepository interface {
 	GetItemCurrentLocationID(itemID uuid.UUID) (uuid.UUID, error)
 	GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error)
-	ItemCreated(item model.ItemModel, locationID uuid.UUID) error
-	ItemTracked(itemID uuid.UUID, locationID uuid.UUID) error
+	ItemCreated(userID uuid.UUID, item model.ItemModel, locationID uuid.UUID) error
+	ItemTracked(userID, itemID, locationID uuid.UUID) error
 }
 
 type postgresItemHistoryRepository struct {
@@ -56,8 +56,7 @@ func (r *postgresItemHistoryRepository) GetItemHistory(itemID uuid.UUID) ([]mode
 	return histories, nil
 }
 
-func (r *postgresItemHistoryRepository) ItemCreated(item model.ItemModel, locationID uuid.UUID) error {
-	userID := uuid.UUID{}
+func (r *postgresItemHistoryRepository) ItemCreated(userID uuid.UUID, item model.ItemModel, locationID uuid.UUID) error {
 	historyData := model.ItemCreatedHistoryData{
 		Reference:   item.Reference,
 		GroupKey:    item.GroupKey,
@@ -91,8 +90,7 @@ func (r *postgresItemHistoryRepository) ItemCreated(item model.ItemModel, locati
 	return nil
 }
 
-func (r *postgresItemHistoryRepository) ItemTracked(itemID uuid.UUID, locationID uuid.UUID) error {
-	userID := uuid.UUID{}
+func (r *postgresItemHistoryRepository) ItemTracked(userID, itemID, locationID uuid.UUID) error {
 	historyData := model.ItemTrackedHistoryData{
 		LocationID: locationID,
 	}

@@ -13,6 +13,7 @@ export function useLocationsApi() {
 
     const response = await fetch(`http://localhost:42069/api/v1/location?${params.toString()}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -28,6 +29,7 @@ export function useLocationsApi() {
   async function getLocation(locationId: string): Promise<Location> {
     const response = await fetch(`http://localhost:42069/api/v1/location/${locationId}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -43,6 +45,7 @@ export function useLocationsApi() {
   async function createLocation(location: CreateLocationRequest): Promise<Location> {
     const response = await fetch("http://localhost:42069/api/v1/location", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -59,6 +62,7 @@ export function useLocationsApi() {
   async function deleteLocation(locationId: string): Promise<void> {
     const response = await fetch(`http://localhost:42069/api/v1/location/${locationId}`, {
       method: "DELETE",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -72,6 +76,7 @@ export function useLocationsApi() {
   async function listItemsAtLocation(locationId: string): Promise<ItemWithCurrentLocation[]> {
     const response = await fetch(`http://localhost:42069/api/v1/location/${locationId}/items`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

@@ -8,10 +8,15 @@ import LocationListingPage from "@/pages/location-listing";
 import SettingsPage from "@/pages/settings";
 import LocationDetailsPage from "@/pages/location-details";
 import ItemGroupListingPage from "@/pages/item-group-listing";
+import AuthenticationLayout from "@/layouts/authentication-layout.tsx";
+import {LogInPage} from "@/pages/auth";
 
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route element={<AuthenticationLayout />}>
+        <Route path="/login" element={<LogInPage />} />
+      </Route>
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
         <Route path="/items" element={<ItemListingPage />} />

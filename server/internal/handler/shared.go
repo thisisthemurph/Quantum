@@ -1,9 +1,22 @@
 package handler
 
 import (
+	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"strconv"
 )
+
+func currentUserID(r *http.Request) (uuid.UUID, bool) {
+	id, ok := r.Context().Value("user_id").(uuid.UUID)
+	return id, ok
+}
+
+func authenticated(r *http.Request) bool {
+	x, ok := currentUserID(r)
+	fmt.Println(x)
+	return ok
+}
 
 type Filters struct {
 	Max            *int

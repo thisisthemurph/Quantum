@@ -32,6 +32,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import {Theme, useTheme} from "@/layouts/theme-provider.tsx";
 import * as React from "react";
+import {useUser} from "@/hooks/use-user.ts";
+import {useAuthApi} from "@/data/api/auth.ts";
+import {toast} from "sonner";
 
 type SidebarItem = {
   title: string;
@@ -61,6 +64,8 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
   const { terminology } = useSettings();
   const location = useLocation();
   const { theme: currentTheme, setTheme } = useTheme();
+  const user = useUser();
+  const {logout} = useAuthApi();
 
   const items: SidebarItem[] = [
     { title: "Home", url: "/", icon: Home },
@@ -129,12 +134,12 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  Username
+                  {user?.name ?? "Account"}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
-                <DropdownMenuLabel>Username</DropdownMenuLabel>
+                <DropdownMenuLabel>{user?.name ?? "Account"}</DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
 
@@ -183,7 +188,7 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => logout().catch(() => toast.error("There has been an issue signing you out"))}>
                     <LogOut className="w-5 h-5" />
                     <span>Sign out</span>
                   </DropdownMenuItem>

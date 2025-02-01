@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"context"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"net/http"
 	"quantum/internal/app"
 	"quantum/internal/repository"
 	"quantum/internal/service"
+	"time"
 )
 
 type HandlerBuilder interface {
@@ -20,6 +24,7 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 	services := service.NewServices(repositories)
 
 	handlers := []HandlerBuilder{
+		NewAuthHandler(services.UserService, app.Config.SessionSecret, app.Logger),
 		NewItemHandler(services.ItemService, services.SettingsService, app.Logger),
 		NewLocationHandler(services.LocationService, services.ItemService, app.Logger),
 		NewSettingsHandler(services.SettingsService, app.Logger),
@@ -38,7 +43,7 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 		http.NotFound(w, r)
 	})
 
-	applyMiddlewareFunc := applyMiddlewareFactory(app.Config.ClientBaseURL)
+	applyMiddlewareFunc := applyMiddlewareFactory(app.Config)
 
 	for _, h := range handlers {
 		h.RegisterRoutes(mux, applyMiddlewareFunc)
@@ -48,9 +53,57 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 }
 
 // applyMiddlewareFactory creates a single MiddlewareFunc function for applying middleware to all handlers.
-func applyMiddlewareFactory(clientBaseURL string) MiddlewareFunc {
+func applyMiddlewareFactory(conf *app.Config) MiddlewareFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
-		return recoverMiddleware(corsMiddleware(next, clientBaseURL))
+		return recoverMiddleware(withAuthenticatedUserMiddleware(corsMiddleware(next, conf.ClientBaseURL), conf.SessionSecret))
+	}
+}
+
+func withAuthenticatedUserMiddleware(next http.HandlerFunc, sessionSecret string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenCookie, err := r.Cookie("token")
+		if err != nil || tokenCookie == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		token, err := jwt.Parse(tokenCookie.Value, func(token *jwt.Token) (interface{}, error) {
+			return []byte(sessionSecret), nil
+		})
+
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		exp, ok := claims["exp"].(float64)
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		expiration := time.Unix(int64(exp), 0)
+		if time.Now().After(expiration) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		userID, err := uuid.Parse(claims["sub"].(string))
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "user_id", userID)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
 	}
 }
 

@@ -15,17 +15,20 @@ type ItemService struct {
 	itemRepo     repository.ItemRepository
 	historyRepo  repository.ItemHistoryRepository
 	locationRepo repository.LocationRepository
+	userRepo     repository.UserRepository
 }
 
 func NewItemService(
 	itemRepo repository.ItemRepository,
 	historyRepo repository.ItemHistoryRepository,
 	locationRepo repository.LocationRepository,
+	userRepo repository.UserRepository,
 ) *ItemService {
 	return &ItemService{
 		itemRepo:     itemRepo,
 		historyRepo:  historyRepo,
 		locationRepo: locationRepo,
+		userRepo:     userRepo,
 	}
 }
 
@@ -107,7 +110,7 @@ func (s *ItemService) GroupKeyExists(groupKey string) (bool, error) {
 	return s.itemRepo.GroupKeyExists(groupKey)
 }
 
-func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, error) {
+func (s *ItemService) Create(userID uuid.UUID, item dto.CreateItemRequest) (dto.ItemResponse, error) {
 	itemModel := model.ItemModel{
 		Identifier:  item.Identifier,
 		Reference:   item.Reference,
@@ -118,7 +121,7 @@ func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, erro
 	if err := s.itemRepo.Create(&itemModel); err != nil {
 		return dto.ItemResponse{}, err
 	}
-	if err := s.historyRepo.ItemCreated(itemModel, item.LocationID); err != nil {
+	if err := s.historyRepo.ItemCreated(userID, itemModel, item.LocationID); err != nil {
 		return dto.ItemResponse{}, err
 	}
 
@@ -141,7 +144,7 @@ func (s *ItemService) Delete(id uuid.UUID) error {
 	return s.itemRepo.Delete(id)
 }
 
-func (s *ItemService) TrackItem(itemID uuid.UUID, locationID uuid.UUID) error {
+func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
 	item, err := s.itemRepo.GetByID(itemID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -150,7 +153,7 @@ func (s *ItemService) TrackItem(itemID uuid.UUID, locationID uuid.UUID) error {
 		return err
 	}
 
-	if err := s.historyRepo.ItemTracked(item.ID, locationID); err != nil {
+	if err := s.historyRepo.ItemTracked(userID, item.ID, locationID); err != nil {
 		return err
 	}
 
@@ -173,6 +176,10 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 		switch historyType {
 		case model.ItemHistoryTypeCreated:
 			d := data.(model.ItemCreatedHistoryData)
+			user, err := s.userRepo.Get(h.UserID)
+			if err != nil {
+				return nil, err
+			}
 			location, err := s.locationRepo.Get(d.LocationID)
 			if err != nil {
 				return nil, err
@@ -182,7 +189,7 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 				ItemHistoryHeader: dto.ItemHistoryHeader[dto.CreatedItemHistoryRecordData]{
 					Type:     historyType,
 					UserID:   h.UserID,
-					UserName: "NOT IMPLEMENTED",
+					UserName: user.Name,
 					Date:     h.CreatedAt,
 					Data: dto.CreatedItemHistoryRecordData{
 						Reference:    d.Reference,
@@ -201,6 +208,10 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 			if err != nil {
 				return nil, err
 			}
+			user, err := s.userRepo.Get(h.UserID)
+			if err != nil {
+				return nil, err
+			}
 			location, err := s.locationRepo.Get(d.LocationID)
 			if err != nil {
 				return nil, err
@@ -210,7 +221,7 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 				ItemHistoryHeader: dto.ItemHistoryHeader[dto.TrackedItemHistoryRecordData]{
 					Type:     historyType,
 					UserID:   h.UserID,
-					UserName: "NOT IMPLEMENTED",
+					UserName: user.Name,
 					Date:     h.CreatedAt,
 					Data: dto.TrackedItemHistoryRecordData{
 						ItemReference: item.Reference,

@@ -38,6 +38,11 @@ func (h *LocationHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) 
 }
 
 func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	filters := getFiltersFromRequest(r)
 	locations, err := h.locationService.List(filters.Max, filters.Filter, filters.IncludeDeleted)
 	if err != nil {
@@ -50,8 +55,12 @@ func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *LocationHandler) listItemsByLocationID(w http.ResponseWriter, r *http.Request) {
-	locationID, err := uuid.Parse(r.PathValue("locationId"))
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
+	locationID, err := uuid.Parse(r.PathValue("locationId"))
 	if err != nil {
 		h.logger.Error("invalid location id", "error", err)
 		res.Error(w, "invalid location id", http.StatusBadRequest)
@@ -69,6 +78,11 @@ func (h *LocationHandler) listItemsByLocationID(w http.ResponseWriter, r *http.R
 }
 
 func (h *LocationHandler) getLocationByID(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	locationID, err := uuid.Parse(r.PathValue("locationId"))
 	if err != nil {
 		h.logger.Error("invalid location id", "error", err, "locationID", locationID)
@@ -89,6 +103,11 @@ func (h *LocationHandler) getLocationByID(w http.ResponseWriter, r *http.Request
 }
 
 func (h *LocationHandler) createLocation(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var request dto.CreateLocationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Error("invalid location request", "error", err)
@@ -106,6 +125,11 @@ func (h *LocationHandler) createLocation(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *LocationHandler) deleteLocation(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	locationID, err := uuid.Parse(r.PathValue("locationId"))
 	if err != nil {
 		h.logger.Error("invalid location id", "error", err, "locationID", locationID)

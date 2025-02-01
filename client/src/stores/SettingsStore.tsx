@@ -12,6 +12,7 @@ export const useSettingsStore = create<SettingsStoreState>((set) => ({
     try {
       const response = await fetch("http://localhost:42069/api/v1/settings", {
         method: "GET",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
 

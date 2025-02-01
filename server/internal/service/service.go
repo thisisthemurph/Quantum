@@ -3,6 +3,7 @@ package service
 import "quantum/internal/repository"
 
 type Services struct {
+	UserService     *UserService
 	ItemService     *ItemService
 	LocationService *LocationService
 	SettingsService *SettingsService
@@ -10,7 +11,8 @@ type Services struct {
 
 func NewServices(repos *repository.Repositories) *Services {
 	return &Services{
-		ItemService:     NewItemService(repos.ItemRepository, repos.ItemHistoryRepository, repos.LocationRepository),
+		UserService:     NewUserService(repos.UserRepository),
+		ItemService:     NewItemService(repos.ItemRepository, repos.ItemHistoryRepository, repos.LocationRepository, repos.UserRepository),
 		LocationService: NewLocationService(repos.LocationRepository),
 		SettingsService: NewSettingsService(repos.SettingsRepository),
 	}

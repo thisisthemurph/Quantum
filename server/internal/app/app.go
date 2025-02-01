@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -15,8 +15,16 @@ type App struct {
 	Logger *slog.Logger
 }
 
+func mustGetenv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		panic(fmt.Sprintf("environment variable %s is required", key))
+	}
+	return value
+}
+
 func NewApp(logger *slog.Logger) (*App, error) {
-	config := NewAppConfig(os.Getenv)
+	config := NewAppConfig(mustGetenv)
 	return &App{
 		Config: config,
 		Logger: logger,

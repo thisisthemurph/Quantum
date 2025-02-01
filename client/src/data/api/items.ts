@@ -1,6 +1,5 @@
 import {Item, ItemHistoryEvent, ItemWithCurrentLocation} from "@/data/models/item";
 
-
 export function useItemsApi() {
   async function listItems(groupKey?: string): Promise<ItemWithCurrentLocation[]> {
     let url = "http://localhost:42069/api/v1/item";
@@ -15,6 +14,7 @@ export function useItemsApi() {
 
     const response = await fetch(url, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -30,6 +30,7 @@ export function useItemsApi() {
   async function getItem(itemId: string): Promise<Item> {
     const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -53,6 +54,7 @@ export function useItemsApi() {
 
     const response = await fetch(`http://localhost:42069/api/v1/item/groups?${params.toString()}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -68,6 +70,7 @@ export function useItemsApi() {
   async function createItem(item: {reference: string; groupKey: string; description?: string}): Promise<Item> {
     const response = await fetch("http://localhost:42069/api/v1/item", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -92,6 +95,7 @@ export function useItemsApi() {
 
     const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}/history`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -107,6 +111,7 @@ export function useItemsApi() {
   async function trackItem(itemId: string, locationId: string) {
     const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}/track/${locationId}`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -122,7 +127,8 @@ export function useItemsApi() {
   async function groupKeysExist(groupKeys: string[]): Promise<{[key: string]: boolean }> {
     const params = new URLSearchParams({ groups: groupKeys.map(k => k.trim()).join(",") });
     const response = await fetch(`http://localhost:42069/api/v1/item/groups/exist?${params.toString()}`, {
-      method: "GET"
+      method: "GET",
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -135,6 +141,7 @@ export function useItemsApi() {
   async function downloadHistoryCsv(itemId: string) {
     const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}/history/csv`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

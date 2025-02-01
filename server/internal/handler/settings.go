@@ -27,6 +27,11 @@ func (h *SettingsHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) 
 }
 
 func (h *SettingsHandler) getSettings(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	settings, err := h.settingsService.Get()
 	if err != nil {
 		h.logger.Error("failed to get settings", "error", err)
@@ -38,6 +43,11 @@ func (h *SettingsHandler) getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SettingsHandler) updateSettings(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var settings dto.SettingsResponse
 	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
 		h.logger.Error("failed to decode request body", "error", err)

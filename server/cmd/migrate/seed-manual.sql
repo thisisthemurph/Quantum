@@ -1,6 +1,14 @@
+DELETE FROM users;
 DELETE FROM item_history;
 DELETE FROM locations;
 DELETE FROM items;
+DELETE FROM settings;
+
+
+-- password is the string password
+INSERT INTO users (email, password, name)
+VALUES ('test@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Test User');
+
 
 INSERT INTO locations (name, description)
 VALUES
@@ -95,7 +103,7 @@ WITH item_locations AS (
 )
 INSERT INTO item_history (user_id, item_id, data)
 SELECT
-    '9c262036-01e6-4539-8c24-cc7b83abe8ac',  -- Replace with the desired user ID
+    (select id from users limit 1),  -- Replace with the desired user ID
     item_id,
     json_build_object(
             'data', jsonb_build_object(

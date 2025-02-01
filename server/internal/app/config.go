@@ -26,6 +26,7 @@ type databaseConfig struct {
 type Config struct {
 	Host          string
 	ClientBaseURL string
+	SessionSecret string
 	Environment   Environment
 	Database      databaseConfig
 }
@@ -34,6 +35,7 @@ func NewAppConfig(get func(string) string) *Config {
 	return &Config{
 		Host:          get("HOST"),
 		ClientBaseURL: get("CLIENT_BASE_URL"),
+		SessionSecret: get("SESSION_SECRET"),
 		Environment:   NewEnvironment(get("ENVIRONMENT")),
 		Database: databaseConfig{
 			ConnectionString: get("DATABASE_CONNECTION_STRING"),

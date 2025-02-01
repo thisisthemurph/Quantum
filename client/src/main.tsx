@@ -7,20 +7,26 @@ import { Toaster } from 'sonner';
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import AppRoutes from "@/routes.tsx";
 import {SettingsProvider} from "@/stores/SettingsProvider.tsx";
+import {ThemeProvider} from "@/layouts/theme-provider.tsx";
+import { UserProvider } from './stores/UserProvider.tsx'
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SettingsProvider>
-      <TooltipProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </QueryClientProvider>
-      </TooltipProvider>
-      <Toaster />
-    </SettingsProvider>
+    <UserProvider>
+      <SettingsProvider>
+        <TooltipProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+                <AppRoutes />
+              </ThemeProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </TooltipProvider>
+        <Toaster />
+      </SettingsProvider>
+    </UserProvider>
   </StrictMode>,
 )

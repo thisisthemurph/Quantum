@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Location } from "@/data/models/location";
 import { useState } from "react";
 import { CommandDialogCombobox } from "@/components/CommandDialogCombobox.tsx";
-import {useSettings} from "@/hooks/use-settings.tsx";
+import { useSettings } from "@/hooks/use-settings.tsx";
 
 const formSchema = z.object({
   identifier: z.string().min(1, "A barcode must be provided"),

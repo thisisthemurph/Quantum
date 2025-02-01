@@ -4,7 +4,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/components/ui/tabs";
 import { TerminologyTab } from "@/pages/settings/TerminologyTab.tsx";
 import { useMutation } from "@tanstack/react-query";
 import { useSettingsApi } from "@/data/api/settings.ts";
