@@ -12,7 +12,7 @@ import {useSettings} from "@/hooks/use-settings.tsx";
 
 export default function ItemDetailsPage() {
   const { itemId } = useParams();
-  const { getItem, getItemHistory, trackItem } = useItemsApi();
+  const { getItem, getItemHistory, trackItem, downloadHistoryCsv } = useItemsApi();
   const { listLocations } = useLocationsApi();
   const { terminology } = useSettings();
 
@@ -64,7 +64,25 @@ export default function ItemDetailsPage() {
     <Page title={`${terminology.item} Details`} actionItems={<EditItemButton />}>
       <section className="flex flex-col gap-4">
         {itemQuery.isLoading || !itemQuery.data ? <p>Loading item</p> : <ItemDetailsCard item={itemQuery.data} locations={locationsQuery.data ?? []} onItemTracked={handleTrackedItem} />}
-        {itemHistoryQuery.isLoading ? <p>Loading history</p> : <ItemHistoryCard history={itemHistoryQuery.data ?? []} />}
+        {itemHistoryQuery.isLoading
+          ? <p>Loading history</p>
+          : (
+            <ItemHistoryCard
+              history={itemHistoryQuery.data ?? []}
+              onDownload={() => {
+                if (!itemQuery.data) return;
+                const item = itemQuery.data;
+
+                downloadHistoryCsv(item.id).then(blob => {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${terminology.item}-${item.reference}-history.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                });
+              }} />
+          )}
       </section>
     </Page>
   );

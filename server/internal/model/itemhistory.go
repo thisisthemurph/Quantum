@@ -9,6 +9,23 @@ import (
 
 type ItemHistoryType string
 
+func (t ItemHistoryType) String() string {
+	switch t {
+	case ItemHistoryTypeCreated:
+		return "Created"
+	case ItemHistoryTypeUpdated:
+		return "Updated"
+	case ItemHistoryTypeDeleted:
+		return "Deleted"
+	case ItemHistoryTypeRestored:
+		return "Restored"
+	case ItemHistoryTypeTracked:
+		return "Tracked"
+	default:
+		return "Unknown"
+	}
+}
+
 const (
 	ItemHistoryTypeUnknown  ItemHistoryType = "unknown"
 	ItemHistoryTypeCreated  ItemHistoryType = "created"

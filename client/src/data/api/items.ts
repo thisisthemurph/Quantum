@@ -132,6 +132,21 @@ export function useItemsApi() {
     throw new Error("Failed to check group keys");
   }
 
+  async function downloadHistoryCsv(itemId: string) {
+    const response = await fetch(`http://localhost:42069/api/v1/item/${itemId}/history/csv`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      return response.blob();
+    }
+
+    throw new Error("Failed to download history");
+  }
+
   return {
     listItems,
     getItem,
@@ -141,5 +156,6 @@ export function useItemsApi() {
     createItem,
     trackItem,
     groupKeysExist,
+    downloadHistoryCsv,
   };
 }

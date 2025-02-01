@@ -18,9 +18,10 @@ import {cn} from "@/lib/utils.ts";
 
 interface ItemTrackHistoryProps {
   history: ItemHistoryEvent[];
+  onDownload: () => void;
 }
 
-export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
+export function ItemHistoryCard({ history, onDownload }: ItemTrackHistoryProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { terminology } = useSettings();
 
@@ -32,7 +33,10 @@ export function ItemHistoryCard({ history }: ItemTrackHistoryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">{terminology.item} History</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl">{terminology.item} History</CardTitle>
+          <Button variant="outline" onClick={onDownload}>Download CSV</Button>
+        </div>
         <CardDescription className="text-lg">A detailed history of where this {terminology.item.toLowerCase()} has been.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
