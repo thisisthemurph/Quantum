@@ -72,7 +72,7 @@ export function CreateItemForm({
             control={form.control}
             render={({field}) => (
               <FormItem>
-                <FormLabel>Group</FormLabel>
+                <FormLabel>{terminology.group}</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
                     <Button
