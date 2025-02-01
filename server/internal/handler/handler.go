@@ -20,7 +20,7 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 	services := service.NewServices(repositories)
 
 	handlers := []HandlerBuilder{
-		NewItemHandler(services.ItemService, app.Logger),
+		NewItemHandler(services.ItemService, services.SettingsService, app.Logger),
 		NewLocationHandler(services.LocationService, services.ItemService, app.Logger),
 		NewSettingsHandler(services.SettingsService, app.Logger),
 	}

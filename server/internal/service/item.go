@@ -166,24 +166,17 @@ func (s *ItemService) TrackItem(itemID uuid.UUID, locationID uuid.UUID) error {
 	return nil
 }
 
-func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]map[string]interface{}, error) {
+func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord, error) {
 	historyModel, err := s.historyRepo.GetItemHistory(itemID)
 	if err != nil {
 		return nil, err
 	}
 
-	var results = make([]map[string]interface{}, 0)
+	var results = make([]dto.ItemHistoryRecord, 0)
 	for _, h := range historyModel {
 		historyType, data, err := h.ParseData()
 		if err != nil {
-			return results, err
-		}
-
-		res := map[string]interface{}{
-			"type":     string(historyType),
-			"userId":   h.UserID,
-			"userName": "NOT IMPLEMENTED",
-			"date":     h.CreatedAt,
+			return nil, err
 		}
 
 		switch historyType {
@@ -191,30 +184,57 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]map[string]interface{}
 			d := data.(model.ItemCreatedHistoryData)
 			location, err := s.locationRepo.Get(d.LocationID)
 			if err != nil {
-				return results, err
+				return nil, err
 			}
-			res["data"] = map[string]interface{}{
-				"reference":    d.Reference,
-				"group":        d.GroupKey,
-				"description":  d.Description,
-				"locationId":   d.LocationID,
-				"locationName": location.Name,
+
+			hr := dto.CreatedItemHistoryRecord{
+				ItemHistoryHeader: dto.ItemHistoryHeader[dto.CreatedItemHistoryRecordData]{
+					Type:     historyType,
+					UserID:   h.UserID,
+					UserName: "NOT IMPLEMENTED",
+					Date:     h.CreatedAt,
+					Data: dto.CreatedItemHistoryRecordData{
+						Reference:    d.Reference,
+						GroupKey:     d.GroupKey,
+						Description:  d.Description,
+						LocationID:   d.LocationID,
+						LocationName: location.Name,
+					},
+				},
 			}
+
+			results = append(results, hr)
 		case model.ItemHistoryTypeTracked:
 			d := data.(model.ItemTrackedHistoryData)
+			item, err := s.itemRepo.GetByID(itemID)
+			if err != nil {
+				return nil, err
+			}
 			location, err := s.locationRepo.Get(d.LocationID)
 			if err != nil {
-				return results, err
+				return nil, err
 			}
-			res["data"] = map[string]interface{}{
-				"locationId":   d.LocationID,
-				"locationName": location.Name,
+
+			hr := dto.TrackedItemHistoryRecord{
+				ItemHistoryHeader: dto.ItemHistoryHeader[dto.TrackedItemHistoryRecordData]{
+					Type:     historyType,
+					UserID:   h.UserID,
+					UserName: "NOT IMPLEMENTED",
+					Date:     h.CreatedAt,
+					Data: dto.TrackedItemHistoryRecordData{
+						ItemReference: item.Reference,
+						LocationID:    d.LocationID,
+						LocationName:  location.Name,
+					},
+				},
 			}
+
+			results = append(results, hr)
 		default:
 			continue
 		}
 
-		results = append(results, res)
+		//results = append(results, res)
 	}
 
 	return results, nil

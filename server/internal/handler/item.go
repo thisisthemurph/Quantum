@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -15,14 +16,20 @@ import (
 )
 
 type ItemHandler struct {
-	itemService *service.ItemService
-	logger      *slog.Logger
+	itemService     *service.ItemService
+	settingsService *service.SettingsService
+	logger          *slog.Logger
 }
 
-func NewItemHandler(itemService *service.ItemService, logger *slog.Logger) *ItemHandler {
+func NewItemHandler(
+	itemService *service.ItemService,
+	settingsService *service.SettingsService,
+	logger *slog.Logger,
+) *ItemHandler {
 	return &ItemHandler{
-		itemService: itemService,
-		logger:      logger,
+		itemService:     itemService,
+		settingsService: settingsService,
+		logger:          logger,
 	}
 }
 
@@ -31,6 +38,7 @@ func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/item/{itemId}", mf(h.getItemByID))
 	mux.HandleFunc("GET /api/v1/item/groups/exist", mf(h.getItemGroupsExist))
 	mux.HandleFunc("GET /api/v1/item/{itemId}/history", mf(h.getItemHistory))
+	mux.HandleFunc("GET /api/v1/item/{itemId}/history/csv", mf(h.downloadItemHistoryCSV))
 	mux.HandleFunc("GET /api/v1/item", mf(h.listItems))
 	mux.HandleFunc("POST /api/v1/item", mf(h.createItem))
 	mux.HandleFunc("POST /api/v1/item/{itemId}/track/{locationId}", mf(h.trackItem))
@@ -152,6 +160,44 @@ func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.JSON(w, history)
+}
+
+func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Request) {
+	itemID, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		h.logger.Error("invalid item id", "error", err)
+		res.Error(w, "invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	settings, err := h.settingsService.Get()
+	if err != nil {
+		h.logger.Error("error getting settings", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	history, err := h.itemService.GetItemHistory(itemID)
+	if err != nil {
+		h.logger.Error("error getting item history", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	writer := csv.NewWriter(w)
+	defer writer.Flush()
+
+	terms := settings.Terminology
+	_ = writer.Write([]string{"Date", "Type", "User", terms.Group, terms.Location})
+	for _, record := range history {
+		if err := record.CSV(writer); err != nil {
+			h.logger.Error("error writing csv record", "error", err)
+			res.InternalServerError(w)
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/csv")
 }
 
 func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request) {

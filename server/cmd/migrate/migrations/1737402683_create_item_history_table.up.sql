@@ -3,7 +3,7 @@ create table if not exists item_history (
     user_id uuid not null,
     item_id uuid not null references items(id) on delete cascade,
     data jsonb not null,
-    created_at timestamp not null default now()
+    created_at timestamp with time zone not null default now()
 );
 
 create index idx_item_history_type_location
