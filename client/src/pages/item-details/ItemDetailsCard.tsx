@@ -1,5 +1,5 @@
 import {
-  Card,
+  Card, CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -12,6 +12,7 @@ import {Link} from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
 import {Box} from "lucide-react";
 import {TrackItemFormDialog} from "@/pages/item-details/TrackItemFormDialog.tsx";
+import Barcode from "react-barcode";
 
 interface ItemDetailsProps {
   item: Item;
@@ -45,6 +46,9 @@ export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSear
           <CardDescription className="text-lg">{item.description ?? "This item does not have a description"}</CardDescription>
         </div>
       </CardHeader>
+      <CardContent className="flex justify-center">
+        <Barcode value={item.identifier} />
+      </CardContent>
       <CardFooter>
         <section className="w-full flex justify-start sm:justify-between items-end gap-2">
           <Button variant="outline">Track to me</Button>
