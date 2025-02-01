@@ -1,5 +1,6 @@
 export type Item = {
   id: string;
+  identifier: string;
   reference: string;
   groupKey: string;
   description?: string;
