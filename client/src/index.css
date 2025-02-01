@@ -740,10 +740,6 @@ body {
   z-index: 50;
 }
 
-.m-2 {
-  margin: 0.5rem;
-}
-
 .-mx-1 {
   margin-left: -0.25rem;
   margin-right: -0.25rem;
@@ -796,10 +792,6 @@ body {
   margin-bottom: 2rem;
 }
 
-.ml-2 {
-  margin-left: 0.5rem;
-}
-
 .ml-auto {
   margin-left: auto;
 }
@@ -812,16 +804,16 @@ body {
   margin-right: 1.5rem;
 }
 
-.mt-0 {
-  margin-top: 0px;
-}
-
 .mt-2 {
   margin-top: 0.5rem;
 }
 
 .mt-4 {
   margin-top: 1rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 
 .block {
@@ -907,10 +899,6 @@ body {
 
 .h-\[1px\] {
   height: 1px;
-}
-
-.h-auto {
-  height: auto;
 }
 
 .h-full {
@@ -1045,10 +1033,6 @@ body {
   flex-shrink: 0;
 }
 
-.grow {
-  flex-grow: 1;
-}
-
 .caption-bottom {
   caption-side: bottom;
 }
@@ -1166,12 +1150,6 @@ body {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-y-0 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(0px * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(0px * var(--tw-space-y-reverse));
 }
 
 .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
@@ -1324,6 +1302,11 @@ body {
   background-color: rgb(216 180 254 / 0.8);
 }
 
+.bg-red-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
 .bg-secondary {
   background-color: hsl(var(--secondary));
 }
@@ -1463,20 +1446,16 @@ body {
   padding-top: 0px;
 }
 
-.pb-2 {
-  padding-bottom: 0.5rem;
-}
-
-.pt-2 {
-  padding-top: 0.5rem;
-}
-
 .text-left {
   text-align: left;
 }
 
 .text-center {
   text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .align-middle {
@@ -2414,17 +2393,6 @@ body {
 }
 
 @media (min-width: 640px) {
-  .sm\:not-sr-only {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-  }
-
   .sm\:relative {
     position: relative;
   }
@@ -2437,10 +2405,6 @@ body {
     margin-top: 0px;
   }
 
-  .sm\:inline-block {
-    display: inline-block;
-  }
-
   .sm\:flex {
     display: flex;
   }
@@ -2449,8 +2413,16 @@ body {
     height: auto;
   }
 
+  .sm\:h-8 {
+    height: 2rem;
+  }
+
   .sm\:w-auto {
     width: auto;
+  }
+
+  .sm\:w-8 {
+    width: 2rem;
   }
 
   .sm\:max-w-sm {
@@ -2499,6 +2471,11 @@ body {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   }
 
+  .sm\:text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
   .sm\:font-semibold {
     font-weight: 600;
   }
@@ -2517,12 +2494,37 @@ body {
     display: block;
   }
 
+  .md\:inline-block {
+    display: inline-block;
+  }
+
   .md\:flex {
     display: flex;
   }
 
   .md\:hidden {
     display: none;
+  }
+
+  .md\:h-8 {
+    height: 2rem;
+  }
+
+  .md\:h-10 {
+    height: 2.5rem;
+  }
+
+  .md\:w-8 {
+    width: 2rem;
+  }
+
+  .md\:w-10 {
+    width: 2.5rem;
+  }
+
+  .md\:text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
 
   .md\:text-sm {
