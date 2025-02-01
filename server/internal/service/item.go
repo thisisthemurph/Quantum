@@ -30,7 +30,7 @@ func NewItemService(
 }
 
 func (s *ItemService) Get(id uuid.UUID) (dto.ItemResponse, error) {
-	i, err := s.itemRepo.GetByID(id)
+	itemModel, err := s.itemRepo.GetByID(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dto.ItemResponse{}, ErrItemNotFound
@@ -38,28 +38,17 @@ func (s *ItemService) Get(id uuid.UUID) (dto.ItemResponse, error) {
 		return dto.ItemResponse{}, err
 	}
 
-	locationID, err := s.historyRepo.GetItemCurrentLocationID(i.ID)
+	locationID, err := s.historyRepo.GetItemCurrentLocationID(itemModel.ID)
 	if err != nil {
 		return dto.ItemResponse{}, err
 	}
 
-	location, err := s.locationRepo.Get(locationID)
+	locationModel, err := s.locationRepo.Get(locationID)
 	if err != nil {
 		return dto.ItemResponse{}, err
 	}
 
-	return dto.ItemResponse{
-		ID:          i.ID,
-		Reference:   i.Reference,
-		GroupKey:    i.GroupKey,
-		Description: i.Description,
-		CurrentLocation: &dto.ItemCurrentLocation{
-			ID:   location.ID,
-			Name: location.Name,
-		},
-		CreatedAt: i.CreatedAt,
-		UpdatedAt: i.UpdatedAt,
-	}, nil
+	return dto.NewItemResponseFromModel(itemModel, &locationModel), nil
 }
 
 func (s *ItemService) List(groupKeyFilter *string) ([]dto.ItemWithCurrentLocationResponse, error) {
@@ -71,7 +60,7 @@ func (s *ItemService) List(groupKeyFilter *string) ([]dto.ItemWithCurrentLocatio
 	var itemsResponse = make([]dto.ItemWithCurrentLocationResponse, len(items))
 	for i, item := range items {
 		itemsResponse[i] = dto.ItemWithCurrentLocationResponse{
-			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel),
+			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel, nil),
 			CurrentLocation: dto.CurrentLocation{
 				ID:          item.LocationID,
 				Name:        item.LocationName,
@@ -93,7 +82,7 @@ func (s *ItemService) ListByLocationID(locationID uuid.UUID) ([]dto.ItemWithCurr
 	var itemsResponse = make([]dto.ItemWithCurrentLocationResponse, len(items))
 	for i, item := range items {
 		itemsResponse[i] = dto.ItemWithCurrentLocationResponse{
-			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel),
+			ItemResponse: dto.NewItemResponseFromModel(item.ItemModel, nil),
 			CurrentLocation: dto.CurrentLocation{
 				ID:          item.LocationID,
 				Name:        item.LocationName,

@@ -20,8 +20,8 @@ type ItemResponse struct {
 	UpdatedAt       time.Time            `json:"updatedAt"`
 }
 
-func NewItemResponseFromModel(item model.ItemModel) ItemResponse {
-	return ItemResponse{
+func NewItemResponseFromModel(item model.ItemModel, location *model.LocationModel) ItemResponse {
+	r := ItemResponse{
 		ID:          item.ID,
 		Identifier:  item.Identifier,
 		Reference:   item.Reference,
@@ -30,6 +30,15 @@ func NewItemResponseFromModel(item model.ItemModel) ItemResponse {
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	}
+
+	if location != nil {
+		r.CurrentLocation = &ItemCurrentLocation{
+			ID:   location.ID,
+			Name: location.Name,
+		}
+	}
+
+	return r
 }
 
 type CurrentLocation struct {
