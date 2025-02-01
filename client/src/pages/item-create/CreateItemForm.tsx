@@ -11,6 +11,7 @@ import { CommandDialogCombobox } from "@/components/CommandDialogCombobox.tsx";
 import {useSettings} from "@/hooks/use-settings.tsx";
 
 const formSchema = z.object({
+  identifier: z.string().min(1, "A barcode must be provided"),
   reference: z.string().min(1, "A reference must be provided"),
   groupKey: z.string().min(1, "A group key must be provided"),
   description: z.string().optional(),
@@ -43,6 +44,7 @@ export function CreateItemForm({
   const form = useForm<CreateItemFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      identifier: "",
       reference: "",
       groupKey: "",
       description: "",
@@ -50,18 +52,26 @@ export function CreateItemForm({
     },
   });
 
+  function setBarcodeValue(reference: string, groupKey: string) {
+    if (!reference.trim() || !groupKey.trim()) {
+      form.setValue("identifier", "");
+    } else {
+      form.setValue("identifier", `${reference.trim()}-${groupKey.trim()}`);
+    }
+  }
+
   return (
     <Form {...form}>
       <form className="flex flex-col gap-4" onSubmit={form.handleSubmit((values) => onSubmit(values))}>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <FormField
             control={form.control}
             name="reference"
             render={({field}) => (
-              <FormItem className="w-full">
+              <FormItem className="md:col-span-2" onChange={() => setBarcodeValue(field.value, form.getValues().groupKey)}>
                 <FormLabel>Reference</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder={`A unique reference for your ${terminology.item.toLowerCase()}`}/>
+                  <Input {...field} placeholder={`A unique reference for your ${terminology.item.toLowerCase()}`}  />
                 </FormControl>
               </FormItem>
             )}
@@ -71,7 +81,7 @@ export function CreateItemForm({
             name="groupKey"
             control={form.control}
             render={({field}) => (
-              <FormItem>
+              <FormItem className="">
                 <FormLabel>{terminology.group}</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
@@ -97,6 +107,7 @@ export function CreateItemForm({
                   onSearch={onGroupSearched}
                   onItemSelected={(groupKey) => {
                     form.setValue("groupKey", groupKey);
+                    setBarcodeValue(form.getValues().reference, groupKey);
                     setGroupCommandDialogOpen(false);
                   }}
                   onItemCreated={(groupKey) => {
@@ -110,6 +121,20 @@ export function CreateItemForm({
               </FormItem>
             )}
           />
+
+          <FormField name="identifier" control={form.control}
+            render={({field}) => (
+              <FormItem className="sm:col-span-2 md:col-span-1">
+                <FormLabel>Barcode</FormLabel>
+                <FormControl>
+                  <Input {...field}
+                    placeholder={`A barcode for the ${terminology.item.toLowerCase()}`}
+                    disabled={true}
+                    className="font-mono" />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
 
         <FormField
@@ -119,7 +144,7 @@ export function CreateItemForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder={`A short description for the ${terminology.item.toLowerCase()}`}/>
+                <Input {...field} placeholder={`A short description for the ${terminology.item.toLowerCase()}`} />
               </FormControl>
             </FormItem>
           )}
