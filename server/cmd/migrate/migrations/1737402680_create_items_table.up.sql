@@ -1,5 +1,6 @@
 create table if not exists items (
     id uuid primary key default uuid_generate_v4(),
+    identifier text not null,
     reference text unique not null,
     group_key text not null,
     description text,

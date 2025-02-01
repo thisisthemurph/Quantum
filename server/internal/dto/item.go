@@ -11,6 +11,7 @@ var ErrInvalidItemReference = errors.New("invalid item reference")
 
 type ItemResponse struct {
 	ID              uuid.UUID            `json:"id"`
+	Identifier      string               `json:"identifier"`
 	Reference       string               `json:"reference"`
 	GroupKey        string               `json:"groupKey"`
 	Description     *string              `json:"description"`
@@ -22,6 +23,7 @@ type ItemResponse struct {
 func NewItemResponseFromModel(item model.ItemModel) ItemResponse {
 	return ItemResponse{
 		ID:          item.ID,
+		Identifier:  item.Identifier,
 		Reference:   item.Reference,
 		GroupKey:    item.GroupKey,
 		Description: item.Description,

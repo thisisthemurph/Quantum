@@ -8,6 +8,7 @@ import (
 // ItemModel represents a row in the items table.
 type ItemModel struct {
 	ID          uuid.UUID `db:"id"`
+	Identifier  string    `db:"identifier"`
 	Reference   string    `db:"reference"`
 	GroupKey    string    `db:"group_key"`
 	Description *string   `db:"description"`
