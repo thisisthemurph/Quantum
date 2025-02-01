@@ -120,6 +120,7 @@ func (s *ItemService) GroupKeyExists(groupKey string) (bool, error) {
 
 func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, error) {
 	itemModel := model.ItemModel{
+		Identifier:  item.Identifier,
 		Reference:   item.Reference,
 		GroupKey:    item.GroupKey,
 		Description: item.Description,
@@ -134,6 +135,7 @@ func (s *ItemService) Create(item dto.CreateItemRequest) (dto.ItemResponse, erro
 
 	return dto.ItemResponse{
 		ID:          itemModel.ID,
+		Identifier:  itemModel.Identifier,
 		Reference:   itemModel.Reference,
 		GroupKey:    itemModel.GroupKey,
 		Description: itemModel.Description,

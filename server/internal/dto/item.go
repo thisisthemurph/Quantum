@@ -50,6 +50,7 @@ type ItemCurrentLocation struct {
 }
 
 type CreateItemRequest struct {
+	Identifier  string    `json:"identifier"`
 	Reference   string    `json:"reference"`
 	Description *string   `json:"description"`
 	GroupKey    string    `json:"groupKey"`

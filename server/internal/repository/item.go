@@ -84,11 +84,11 @@ func (r *postgresItemRepository) GroupKeyExists(groupKey string) (bool, error) {
 
 func (r *postgresItemRepository) Create(item *model.ItemModel) error {
 	stmt := `
-		insert into items (reference, description, group_key) 
-		values ($1, $2, $3)
+		insert into items (identifier, reference, description, group_key) 
+		values ($1, $2, $3, $4)
 		returning id, created_at, updated_at;`
 
-	return r.db.Get(item, stmt, item.Reference, item.Description, item.GroupKey)
+	return r.db.Get(item, stmt, item.Identifier, item.Reference, item.Description, item.GroupKey)
 }
 
 func (r *postgresItemRepository) Delete(id uuid.UUID) error {
