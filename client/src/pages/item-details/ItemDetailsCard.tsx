@@ -8,18 +8,19 @@ import {
 import { Item } from "@/data/models/item";
 import {Button} from "@/components/ui/button.tsx";
 import {Location} from "@/data/models/location.ts";
-import {TrackItemForm} from "@/pages/item-details/TrackItemForm.tsx";
 import {Link} from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
 import {Box} from "lucide-react";
+import {TrackItemFormDialog} from "@/pages/item-details/TrackItemFormDialog.tsx";
 
 interface ItemDetailsProps {
   item: Item;
   locations: Location[];
+  onLocationSearched: (value: string) => void;
   onItemTracked: (values: { locationId: string }) => void;
 }
 
-export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsProps) {
+export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSearched }: ItemDetailsProps) {
   const { terminology } = useSettings();
 
   return (
@@ -45,9 +46,13 @@ export function ItemDetailsCard({ item, locations, onItemTracked }: ItemDetailsP
         </div>
       </CardHeader>
       <CardFooter>
-        <section className="w-full flex flex-col sm:flex-row fle justify-between items-end gap-2">
+        <section className="w-full flex justify-start sm:justify-between items-end gap-2">
           <Button variant="outline">Track to me</Button>
-          <TrackItemForm currentLocationName={item.currentLocation.name} locations={locations} onSubmit={onItemTracked}/>
+          <TrackItemFormDialog
+            locations={locations}
+            currentLocationName={item.currentLocation.name}
+            onSearched={onLocationSearched}
+            onSubmit={onItemTracked} />
         </section>
       </CardFooter>
     </Card>

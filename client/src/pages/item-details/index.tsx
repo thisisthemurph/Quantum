@@ -9,12 +9,14 @@ import { EditItemButton } from "./EditItemButton";
 import { useLocationsApi } from "@/data/api/locations.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {useSettings} from "@/hooks/use-settings.tsx";
+import {useState} from "react";
 
 export default function ItemDetailsPage() {
   const { itemId } = useParams();
   const { getItem, getItemHistory, trackItem, downloadHistoryCsv } = useItemsApi();
   const { listLocations } = useLocationsApi();
   const { terminology } = useSettings();
+  const [locationFilter, setLocationFilter] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -26,10 +28,9 @@ export default function ItemDetailsPage() {
     }
   });
 
-  // TODO: Implement a better way of changing the location of the item.
   const locationsQuery = useQuery({
-    queryKey: ["locations"],
-    queryFn: () => listLocations(),
+    queryKey: ["locations", locationFilter],
+    queryFn: () => listLocations(15, locationFilter),
   });
 
   const itemHistoryQuery = useQuery({
@@ -43,8 +44,9 @@ export default function ItemDetailsPage() {
   const trackItemMutation = useMutation({
     mutationFn: async ({itemId, locationId}: {itemId: string; locationId: string}) => trackItem(itemId, locationId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["item-history", itemId] });
       toast.success("The location of the item has been updated");
+      await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+      await queryClient.invalidateQueries({ queryKey: ["item-history", itemId] });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -63,7 +65,16 @@ export default function ItemDetailsPage() {
   return (
     <Page title={`${terminology.item} Details`} actionItems={<EditItemButton />}>
       <section className="flex flex-col gap-4">
-        {itemQuery.isLoading || !itemQuery.data ? <p>Loading item</p> : <ItemDetailsCard item={itemQuery.data} locations={locationsQuery.data ?? []} onItemTracked={handleTrackedItem} />}
+        {itemQuery.isLoading || !itemQuery.data
+          ? <p>Loading item</p>
+          : (
+            <ItemDetailsCard
+              item={itemQuery.data}
+              locations={locationsQuery.data ?? []}
+              onItemTracked={handleTrackedItem}
+              onLocationSearched={setLocationFilter}
+            />)}
+
         {itemHistoryQuery.isLoading
           ? <p>Loading history</p>
           : (
