@@ -187,10 +187,11 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 
 			hr := dto.CreatedItemHistoryRecord{
 				ItemHistoryHeader: dto.ItemHistoryHeader[dto.CreatedItemHistoryRecordData]{
-					Type:     historyType,
-					UserID:   h.UserID,
-					UserName: user.Name,
-					Date:     h.CreatedAt,
+					Type:         historyType,
+					UserID:       h.UserID,
+					UserName:     user.Name,
+					UserUsername: user.Username,
+					Date:         h.CreatedAt,
 					Data: dto.CreatedItemHistoryRecordData{
 						Reference:    d.Reference,
 						GroupKey:     d.GroupKey,
@@ -219,10 +220,11 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 
 			hr := dto.TrackedItemHistoryRecord{
 				ItemHistoryHeader: dto.ItemHistoryHeader[dto.TrackedItemHistoryRecordData]{
-					Type:     historyType,
-					UserID:   h.UserID,
-					UserName: user.Name,
-					Date:     h.CreatedAt,
+					Type:         historyType,
+					UserID:       h.UserID,
+					UserName:     user.Name,
+					UserUsername: user.Username,
+					Date:         h.CreatedAt,
 					Data: dto.TrackedItemHistoryRecordData{
 						ItemReference: item.Reference,
 						LocationID:    d.LocationID,

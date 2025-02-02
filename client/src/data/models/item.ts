@@ -16,6 +16,7 @@ export interface baseItemHistory {
   created: string;
   userId: string;
   userName: string;
+  userUsername: string;
   date: string;
 }
 

@@ -116,7 +116,7 @@ function HistoryLocationDetail({ variant, locationName, locationId, date }: { va
 function ItemTrackedEventDetail({ event }: { event: ItemTrackedEvent }) {
   return (
     <HistoryRow>
-      <HistoryUserIdentity userName={event.userName} uniqueIdentifier="user.name@notimplemented.com">
+      <HistoryUserIdentity userName={event.userName} uniqueIdentifier={event.userUsername}>
         <ArrowDownFromLine strokeWidth={1} size={18} />
       </HistoryUserIdentity>
       <HistoryLocationDetail variant="tracked" locationId={event.data.locationId} locationName={event.data.locationName} date={event.date} />
@@ -129,7 +129,7 @@ function ItemCreatedEventDetail({ event }: { event: ItemCreatedEvent }) {
     <HistoryRow>
       <HistoryUserIdentity
         userName={event.userName}
-        uniqueIdentifier="user.name@notimplemented.com"
+        uniqueIdentifier={event.userUsername}
         className="bg-green-400/60"
       >
         <Box strokeWidth={1} size={18}/>

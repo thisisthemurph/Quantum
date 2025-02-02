@@ -14,11 +14,12 @@ type ItemHistoryRecord interface {
 }
 
 type ItemHistoryHeader[T any] struct {
-	Type     model.ItemHistoryType `json:"type"`
-	UserID   uuid.UUID             `json:"userId"`
-	UserName string                `json:"userName"`
-	Date     time.Time             `json:"date"`
-	Data     T                     `json:"data"`
+	Type         model.ItemHistoryType `json:"type"`
+	UserID       uuid.UUID             `json:"userId"`
+	UserName     string                `json:"userName"`
+	UserUsername string                `json:"userUsername"`
+	Date         time.Time             `json:"date"`
+	Data         T                     `json:"data"`
 }
 
 type CreatedItemHistoryRecordData struct {
