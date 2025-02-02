@@ -13,6 +13,7 @@ import {useSettings} from "@/hooks/use-settings.tsx";
 import {Box} from "lucide-react";
 import {TrackItemFormDialog} from "@/pages/item-details/TrackItemFormDialog.tsx";
 import Barcode from "react-barcode";
+import { useUser } from "@/hooks/use-user.ts";
 
 interface ItemDetailsProps {
   item: Item;
@@ -22,6 +23,7 @@ interface ItemDetailsProps {
 }
 
 export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSearched }: ItemDetailsProps) {
+  const user = useUser();
   const { terminology } = useSettings();
 
   return (
@@ -51,12 +53,10 @@ export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSear
       </CardContent>
       <CardFooter>
         <section className="w-full flex justify-start sm:justify-between items-end gap-2">
-          <Button variant="outline">Track to me</Button>
-          <TrackItemFormDialog
-            locations={locations}
-            currentLocationName={item.currentLocation.name}
-            onSearched={onLocationSearched}
-            onSubmit={onItemTracked} />
+          {user.hasTrackerPermissions() && <Button variant="outline">Track to me</Button>}
+          {user.hasTrackerPermissions()
+            ? <TrackItemFormDialog locations={locations} currentLocationName={item.currentLocation.name} onSearched={onLocationSearched} onSubmit={onItemTracked} />
+            : <Button variant="outline" disabled={true}>Current location: {item.currentLocation.name}</Button>}
         </section>
       </CardFooter>
     </Card>

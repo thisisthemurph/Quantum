@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/alert-dialog.tsx";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {useSettings} from "@/hooks/use-settings.tsx";
+import { useSettings } from "@/hooks/use-settings.tsx";
+import { useUser } from "@/hooks/use-user.ts";
 
 export default function LocationListingPage() {
+  const user = useUser();
   const { terminology } = useSettings();
   const { listLocations, createLocation, deleteLocation } = useLocationsApi();
   const [locationPendingDeletion, setLocationPendingDeletion] = useState<Location | undefined>();
@@ -52,9 +54,11 @@ export default function LocationListingPage() {
 
   return (
     <Page title={`${terminology.location} listing`} actionItems={
-      <CreateNewLocationButton>
-        <CreateLocationForm onSubmit={handleCreateLocation} />
-      </CreateNewLocationButton>
+      user.hasWriterPermissions() && (
+        <CreateNewLocationButton>
+          <CreateLocationForm onSubmit={handleCreateLocation} />
+        </CreateNewLocationButton>
+      )
     }>
       <LocationDataTable data={locationsQuery.data ?? []} onDelete={handleDeleteLocationClicked} />
 

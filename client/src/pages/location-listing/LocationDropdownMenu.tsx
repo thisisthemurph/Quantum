@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
+import { useUser } from "@/hooks/use-user.ts";
 
 interface LocationDropdownMenuProps {
   locationId: string;
@@ -20,6 +21,7 @@ interface LocationDropdownMenuProps {
 }
 
 export function LocationDropdownMenu({ locationId, onCopyDescription, onCopyName, onDelete }: LocationDropdownMenuProps) {
+  const user = useUser();
   const { terminology } = useSettings();
 
   return (
@@ -54,10 +56,12 @@ export function LocationDropdownMenu({ locationId, onCopyDescription, onCopyName
             <Eye strokeWidth={1} className="w-4 h-4" />
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex justify-between items-center gap-4 cursor-pointer" onMouseDown={onDelete}>
-          Delete {terminology.location.toLowerCase()}
-          <Trash strokeWidth={1} className="w-4 h-4" />
-        </DropdownMenuItem>
+        {user.isAdmin && (
+          <DropdownMenuItem className="flex justify-between items-center gap-4 cursor-pointer" onMouseDown={onDelete}>
+            Delete {terminology.location.toLowerCase()}
+            <Trash strokeWidth={1} className="w-4 h-4"/>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

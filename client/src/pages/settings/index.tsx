@@ -11,9 +11,11 @@ import { useSettingsApi } from "@/data/api/settings.ts";
 import { DefaultSettings, Settings } from "@/data/models/settings.ts";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { useSettingsStore } from "@/stores/SettingsStore.tsx";
-import {toast} from "sonner";
+import { toast } from "sonner";
+import { useUser } from "@/hooks/use-user.ts";
 
 export default function SettingsPage() {
+  const user = useUser();
   const settings = useSettings();
   const { updateSettings } = useSettingsApi();
   const { fetchSettings } = useSettingsStore.getState();
@@ -31,10 +33,10 @@ export default function SettingsPage() {
 
   return (
     <Page title="Settings">
-      <Tabs defaultValue="terminology">
+      <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="terminology">Terminology</TabsTrigger>
+          <TabsTrigger value="terminology" disabled={!user.isAdmin}>Terminology</TabsTrigger>
         </TabsList>
         <TabsContent value="general">
           <h1>General settings</h1>

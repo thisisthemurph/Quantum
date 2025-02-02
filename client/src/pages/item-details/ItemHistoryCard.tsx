@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils.ts";
+import { useUser } from "@/hooks/use-user.ts";
 
 interface ItemTrackHistoryProps {
   history: ItemHistoryEvent[];
@@ -22,6 +23,7 @@ interface ItemTrackHistoryProps {
 }
 
 export function ItemHistoryCard({ history, onDownload }: ItemTrackHistoryProps) {
+  const user = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const { terminology } = useSettings();
 
@@ -35,7 +37,7 @@ export function ItemHistoryCard({ history, onDownload }: ItemTrackHistoryProps) 
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl">{terminology.item} History</CardTitle>
-          <Button variant="outline" onClick={onDownload}>Download CSV</Button>
+          {user.hasReadPermissions() && <Button variant="outline" onClick={onDownload}>Download CSV</Button>}
         </div>
         <CardDescription className="text-lg">A detailed history of where this {terminology.item.toLowerCase()} has been.</CardDescription>
       </CardHeader>

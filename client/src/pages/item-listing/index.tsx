@@ -7,6 +7,7 @@ import { useItemsApi } from "@/data/api/items";
 import { useQuery } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { usePersistentColumns } from "@/hooks/use-persistent-columns.ts";
+import { useUser } from "@/hooks/use-user.ts";
 
 const visibleColumns = {
   location: true,
@@ -18,6 +19,7 @@ const visibleColumns = {
 };
 
 export default function ItemListingPage() {
+  const user = useUser();
   const { listItems } = useItemsApi();
   const { terminology } = useSettings();
   const persistentColumns = usePersistentColumns(
@@ -29,7 +31,7 @@ export default function ItemListingPage() {
   });
 
   return (
-    <Page title={`${terminology.item} listing`} actionItems={<CreateNewItemButton text={`Create new ${terminology.item.toLowerCase()}`} />}>
+    <Page title={`${terminology.item} listing`} actionItems={user.hasWriterPermissions() && <CreateNewItemButton text={`Create new ${terminology.item.toLowerCase()}`} />}>
       <ItemDataTable data={itemsQuery.data ?? []} persistentColumns={persistentColumns} />
     </Page>
   );
