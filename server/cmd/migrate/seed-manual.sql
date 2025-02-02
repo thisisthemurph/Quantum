@@ -1,14 +1,21 @@
-DELETE FROM users;
 DELETE FROM item_history;
 DELETE FROM locations;
 DELETE FROM items;
 DELETE FROM settings;
+DELETE FROM users;
+DELETE FROM user_roles;
 
 
 -- password is the string password
 INSERT INTO users (email, password, name)
-VALUES ('test@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Test User');
+VALUES
+    ('admin@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Adam Admin'),
+    ('tracker@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Timmy Tracker'),
+    ('writer@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Wayne Writer'),
+    ('reader@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Randy Reader');
 
+INSERT INTO user_roles (user_id, role)
+SELECT id, CAST(SPLIT_PART(email, '@', 1) AS user_role) AS role FROM users;
 
 INSERT INTO locations (name, description)
 VALUES
@@ -97,13 +104,13 @@ WITH item_locations AS (
         i.description,
         l.id location_id,
         i.group_key
-    from items i
-             join locations l
-                  on substring(cast(i.id as text) from 1 for 1) = substring(cast(l.id as text) from 1 for 1)
+    FROM items i
+    JOIN locations l
+        ON SUBSTRING(CAST(i.id AS text) from 1 for 1) = SUBSTRING(CAST(l.id AS text) from 1 for 1)
 )
 INSERT INTO item_history (user_id, item_id, data)
-SELECT
-    (select id from users limit 1),  -- Replace with the desired user ID
+SELECT DISTINCT ON (item_id)
+    (SELECT id FROM users WHERE email = 'tracker@email.com' LIMIT 1),  -- Replace with the desired user ID
     item_id,
     json_build_object(
             'data', jsonb_build_object(
