@@ -54,7 +54,7 @@ export function LogInPage() {
           </div>
           <p className="pb-12 py-8 text-center text-lg w-full italic text-muted-foreground">
             {showSignInForm
-              ? "Sign in with your email address to get started"
+              ? "Sign in with your username to get started"
               : "Create your account to get started with Quantum"}
           </p>
         </section>

@@ -3,12 +3,12 @@ package dto
 import "errors"
 
 var ErrNameRequired = errors.New("name is required")
-var ErrEmailRequired = errors.New("email is required")
+var ErrUsernameRequired = errors.New("username is required")
 var ErrPasswordRequired = errors.New("password is required")
 
 type SignUpRequest struct {
 	Name     string `json:"name"`
-	Email    string `json:"email"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -16,8 +16,8 @@ func (r *SignUpRequest) Validate() error {
 	if r.Name == "" {
 		return ErrNameRequired
 	}
-	if r.Email == "" {
-		return ErrEmailRequired
+	if r.Username == "" {
+		return ErrUsernameRequired
 	}
 	if r.Password == "" {
 		return ErrPasswordRequired
@@ -26,13 +26,13 @@ func (r *SignUpRequest) Validate() error {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 func (l *LoginRequest) Validate() error {
-	if l.Email == "" {
-		return ErrEmailRequired
+	if l.Username == "" {
+		return ErrUsernameRequired
 	}
 	if l.Password == "" {
 		return ErrPasswordRequired

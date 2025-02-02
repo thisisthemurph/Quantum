@@ -3,7 +3,7 @@ import {LogInFormValues} from "@/pages/auth/LogInForm.tsx";
 
 type SignUpRequest = {
   name: string;
-  email: string;
+  username: string;
   password: string;
 }
 

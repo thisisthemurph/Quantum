@@ -35,8 +35,8 @@ func (s *UserService) Get(id uuid.UUID) (dto.UserResponse, error) {
 	return dto.NewUserResponseFromModel(userModel), nil
 }
 
-func (s *UserService) GetByEmail(email string) (dto.UserResponse, error) {
-	userModel, err := s.userRepo.GetByEmail(email)
+func (s *UserService) GetByUsername(username string) (dto.UserResponse, error) {
+	userModel, err := s.userRepo.GetByUsername(username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dto.UserResponse{}, ErrUserNotFound
@@ -54,7 +54,7 @@ func (s *UserService) Create(user dto.SignUpRequest, role permissions.Role) (dto
 
 	userModel := model.User{
 		Name:     user.Name,
-		Email:    user.Email,
+		Username: user.Username,
 		Password: hash,
 		Roles:    permissions.RoleCollection{role},
 	}
@@ -66,8 +66,8 @@ func (s *UserService) Create(user dto.SignUpRequest, role permissions.Role) (dto
 	return dto.NewUserResponseFromModel(userModel), nil
 }
 
-func (s *UserService) VerifyPassword(email, password string) (dto.UserResponse, error) {
-	user, err := s.userRepo.GetByEmail(email)
+func (s *UserService) VerifyPassword(username, password string) (dto.UserResponse, error) {
+	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dto.UserResponse{}, ErrUserNotFound

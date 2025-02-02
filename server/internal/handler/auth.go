@@ -81,7 +81,7 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userService.Create(request, role)
 	if err != nil {
-		h.logger.Error("failed to create user", "email", request.Email, "error", err)
+		h.logger.Error("failed to create user", "username", request.Username, "error", err)
 		res.InternalServerError(w)
 		return
 	}
@@ -101,9 +101,9 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.VerifyPassword(request.Email, request.Password)
+	user, err := h.userService.VerifyPassword(request.Username, request.Password)
 	if err != nil {
-		res.Error(w, "invalid email or password", http.StatusUnauthorized)
+		res.Error(w, "invalid username or password", http.StatusUnauthorized)
 		return
 	}
 

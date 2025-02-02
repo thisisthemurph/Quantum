@@ -7,7 +7,7 @@ import {Button} from "@/components/ui/button.tsx";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name must be provided"),
-  email: z.string().email("Invalid email address"),
+  username: z.string().min(6, "Username must be at least 6 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
 }).superRefine(({ password, confirmPassword }, ctx) => {
@@ -31,7 +31,7 @@ export function SignUpForm({onSubmit}: SignUpFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
@@ -54,13 +54,13 @@ export function SignUpForm({onSubmit}: SignUpFormProps) {
 
 
         <FormField
-          name="email"
+          name="username"
           control={form.control}
           render={({field}) => (
             <FormItem>
-              <FormLabel htmlFor={field.email} className="sr-only">Email</FormLabel>
+              <FormLabel htmlFor={field.username} className="sr-only">Username</FormLabel>
               <FormControl>
-                <Input className="md:text-2xl px-4 py-6 w-full" type="email" placeholder="you@yourdomain.com" {...field} />
+                <Input className="md:text-2xl px-4 py-6 w-full" placeholder="Your username" {...field} />
               </FormControl>
             </FormItem>
           )} />

@@ -3,20 +3,20 @@ export type UserRole = "admin" | "reader" | "writer" | "tracker";
 export interface User {
   id: string;
   name: string;
-  email: string;
+  username: string;
   roles: UserRole[];
 }
 
 export class UserPermissions {
   id: string;
   name: string;
-  email: string;
+  username: string;
   roles: UserRole[];
 
   constructor(public user: User | null) {
     this.id = user?.id ?? "";
     this.name = user?.name ?? "";
-    this.email = user?.email ?? "";
+    this.username = user?.username ?? "";
     this.roles = user?.roles ?? [];
   }
 

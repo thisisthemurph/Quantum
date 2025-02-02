@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  username: z.string().min(1, "Username must be provided"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -20,7 +20,7 @@ export function LogInForm({onSubmit}: LogInFormProps) {
   const form = useForm<LogInFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -29,13 +29,13 @@ export function LogInForm({onSubmit}: LogInFormProps) {
     <Form {...form}>
       <form className="flex flex-col gap-4 w-full px-4" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
-          name="email"
+          name="username"
           control={form.control}
           render={({field}) => (
             <FormItem>
-              <FormLabel htmlFor={field.email} className="sr-only">Email</FormLabel>
+              <FormLabel htmlFor={field.username} className="sr-only">Username</FormLabel>
               <FormControl>
-                <Input className="md:text-2xl px-4 py-6 w-full" type="email" placeholder="you@yourdomain.com" {...field} />
+                <Input className="md:text-2xl px-4 py-6 w-full" placeholder="Your username" {...field} />
               </FormControl>
             </FormItem>
           )} />
@@ -48,7 +48,7 @@ export function LogInForm({onSubmit}: LogInFormProps) {
             <FormItem>
               <FormLabel htmlFor={field.password} className="sr-only">Password</FormLabel>
               <FormControl>
-                <Input className="md:text-2xl px-4 py-6 w-full" type="password" placeholder="password" {...field} />
+                <Input className="md:text-2xl px-4 py-6 w-full" type="password" placeholder="Your password" {...field} />
               </FormControl>
             </FormItem>
           )} />

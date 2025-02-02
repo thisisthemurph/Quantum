@@ -7,15 +7,15 @@ DELETE FROM user_roles;
 
 
 -- password is the string password
-INSERT INTO users (email, password, name)
+INSERT INTO users (username, password, name)
 VALUES
-    ('admin@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Adam Admin'),
-    ('tracker@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Timmy Tracker'),
-    ('writer@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Wayne Writer'),
-    ('reader@email.com', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Randy Reader');
+    ('admin', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Adam Admin'),
+    ('tracker', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Timmy Tracker'),
+    ('writer', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Wayne Writer'),
+    ('reader', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Randy Reader');
 
 INSERT INTO user_roles (user_id, role)
-SELECT id, CAST(SPLIT_PART(email, '@', 1) AS user_role) AS role FROM users;
+SELECT id, CAST(username AS user_role) AS role FROM users;
 
 INSERT INTO locations (name, description)
 VALUES
@@ -110,7 +110,7 @@ WITH item_locations AS (
 )
 INSERT INTO item_history (user_id, item_id, data)
 SELECT DISTINCT ON (item_id)
-    (SELECT id FROM users WHERE email = 'tracker@email.com' LIMIT 1),  -- Replace with the desired user ID
+    (SELECT id FROM users WHERE username = 'tracker' LIMIT 1),  -- Replace with the desired user ID
     item_id,
     json_build_object(
             'data', jsonb_build_object(

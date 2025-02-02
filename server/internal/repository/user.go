@@ -13,7 +13,7 @@ import (
 
 type UserRepository interface {
 	Get(id uuid.UUID) (model.User, error)
-	GetByEmail(email string) (model.User, error)
+	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
 	Count() (int, error)
 }
@@ -36,7 +36,7 @@ type userRoleJoin struct {
 
 func (r *postgresUserRepository) Get(id uuid.UUID) (model.User, error) {
 	stmt := `
-		select u.id, u.name, u.email, u.password, u.created_at, u.updated_at, r.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, r.role
 		from users u
 		left join user_roles r on u.id = r.user_id
 		where u.id = $1;`
@@ -49,15 +49,15 @@ func (r *postgresUserRepository) Get(id uuid.UUID) (model.User, error) {
 	return r.userRoleJoinToUserModel(userWithRoles)
 }
 
-func (r *postgresUserRepository) GetByEmail(email string) (model.User, error) {
+func (r *postgresUserRepository) GetByUsername(username string) (model.User, error) {
 	stmt := `
-		select u.id, u.name, u.email, u.password, u.created_at, u.updated_at, r.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, r.role
 		from users u
 		left join user_roles r on u.id = r.user_id
-		where u.email = $1;`
+		where u.username = $1;`
 
 	var userWithRoles []userRoleJoin
-	if err := r.db.Select(&userWithRoles, stmt, email); err != nil {
+	if err := r.db.Select(&userWithRoles, stmt, username); err != nil {
 		return model.User{}, err
 	}
 
@@ -66,7 +66,7 @@ func (r *postgresUserRepository) GetByEmail(email string) (model.User, error) {
 
 func (r *postgresUserRepository) Create(user *model.User) error {
 	stmt := `
-		insert into users (name, email, password)
+		insert into users (name, username, password)
 		values ($1, $2, $3)
 		returning id, created_at, updated_at;`
 
@@ -88,7 +88,7 @@ func (r *postgresUserRepository) Create(user *model.User) error {
 		}
 	}()
 
-	if err = tx.Get(user, stmt, user.Name, user.Email, user.Password); err != nil {
+	if err = tx.Get(user, stmt, user.Name, user.Username, user.Password); err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -130,7 +130,7 @@ func (r *postgresUserRepository) userRoleJoinToUserModel(userWithRoles []userRol
 	return model.User{
 		ID:        user.ID,
 		Name:      user.Name,
-		Email:     user.Email,
+		Username:  user.Username,
 		Password:  user.Password,
 		Roles:     roles,
 		CreatedAt: user.CreatedAt,
