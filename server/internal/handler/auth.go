@@ -69,7 +69,17 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.Create(request, permissions.ReaderRole)
+	role := permissions.ReaderRole
+	count, err := h.userService.CountUsers()
+	if err != nil {
+		h.logger.Error("failed to count users", "error", err)
+		res.InternalServerError(w)
+		return
+	} else if count == 0 {
+		role = permissions.AdminRole
+	}
+
+	user, err := h.userService.Create(request, role)
 	if err != nil {
 		h.logger.Error("failed to create user", "email", request.Email, "error", err)
 		res.InternalServerError(w)

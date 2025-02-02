@@ -80,3 +80,7 @@ func (s *UserService) VerifyPassword(email, password string) (dto.UserResponse, 
 
 	return dto.NewUserResponseFromModel(user), nil
 }
+
+func (s *UserService) CountUsers() (int, error) {
+	return s.userRepo.Count()
+}

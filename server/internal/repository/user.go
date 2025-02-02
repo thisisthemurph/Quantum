@@ -15,6 +15,7 @@ type UserRepository interface {
 	Get(id uuid.UUID) (model.User, error)
 	GetByEmail(email string) (model.User, error)
 	Create(user *model.User) error
+	Count() (int, error)
 }
 
 type postgresUserRepository struct {
@@ -101,6 +102,16 @@ func (r *postgresUserRepository) Create(user *model.User) error {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil
+}
+
+func (r *postgresUserRepository) Count() (int, error) {
+	stmt := `select count(*) from users;`
+
+	var count int
+	if err := r.db.Get(&count, stmt); err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (r *postgresUserRepository) userRoleJoinToUserModel(userWithRoles []userRoleJoin) (model.User, error) {
