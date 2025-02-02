@@ -32,6 +32,12 @@ func (h *SettingsHandler) getSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Future settings may require different permissions
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	settings, err := h.settingsService.Get()
 	if err != nil {
 		h.logger.Error("failed to get settings", "error", err)
@@ -45,6 +51,11 @@ func (h *SettingsHandler) getSettings(w http.ResponseWriter, r *http.Request) {
 func (h *SettingsHandler) updateSettings(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).IsAdmin() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 

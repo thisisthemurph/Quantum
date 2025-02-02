@@ -50,6 +50,11 @@ func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	questionID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid question id", "error", err)
@@ -75,6 +80,11 @@ func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	groupKeyParam := r.URL.Query().Get("group")
 	var groupKeyFilter *string
 	if groupKeyParam != "" {
@@ -94,6 +104,11 @@ func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -117,6 +132,11 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasWritePermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -145,6 +165,11 @@ func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasTrackPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -177,6 +202,11 @@ func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
@@ -197,6 +227,11 @@ func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -240,6 +275,11 @@ func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Requ
 func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 

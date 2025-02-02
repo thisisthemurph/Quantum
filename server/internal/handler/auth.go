@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"quantum/internal/dto"
+	"quantum/internal/permissions"
 	"quantum/internal/service"
 	"quantum/pkg/res"
 	"time"
@@ -57,7 +58,7 @@ func (h *AuthHandler) getCurrentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
-	var request dto.RegisterRequest
+	var request dto.SignUpRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		res.Error(w, "invalid request", http.StatusBadRequest)
 		return
@@ -68,7 +69,7 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.Create(request)
+	user, err := h.userService.Create(request, permissions.ReaderRole)
 	if err != nil {
 		h.logger.Error("failed to create user", "email", request.Email, "error", err)
 		res.InternalServerError(w)
@@ -98,8 +99,9 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 
 	jwtExpiration := time.Now().Add(time.Hour * 24)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID.String(),
-		"exp": jwtExpiration.Unix(),
+		"sub":   user.ID.String(),
+		"exp":   jwtExpiration.Unix(),
+		"roles": user.Roles,
 	})
 
 	token, err := claims.SignedString([]byte(h.sessionSecret))

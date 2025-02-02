@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"quantum/internal/app"
+	"quantum/internal/permissions"
 	"quantum/internal/repository"
 	"quantum/internal/service"
 	"time"
@@ -100,7 +101,16 @@ func withAuthenticatedUserMiddleware(next http.HandlerFunc, sessionSecret string
 			return
 		}
 
+		claimRoles, ok := claims["roles"].([]interface{})
+		roles := make(permissions.RoleCollection, 0, len(claimRoles))
+		if ok {
+			for _, r := range claimRoles {
+				roles = append(roles, permissions.NewRole(r.(string)))
+			}
+		}
+
 		ctx := context.WithValue(r.Context(), "user_id", userID)
+		ctx = context.WithValue(ctx, "user_roles", roles)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

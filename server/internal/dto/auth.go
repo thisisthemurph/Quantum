@@ -6,13 +6,13 @@ var ErrNameRequired = errors.New("name is required")
 var ErrEmailRequired = errors.New("email is required")
 var ErrPasswordRequired = errors.New("password is required")
 
-type RegisterRequest struct {
+type SignUpRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (r *RegisterRequest) Validate() error {
+func (r *SignUpRequest) Validate() error {
 	if r.Name == "" {
 		return ErrNameRequired
 	}

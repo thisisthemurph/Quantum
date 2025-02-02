@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"quantum/internal/dto"
 	"quantum/internal/model"
+	"quantum/internal/permissions"
 	"quantum/internal/repository"
 )
 
@@ -45,7 +46,7 @@ func (s *UserService) GetByEmail(email string) (dto.UserResponse, error) {
 	return dto.NewUserResponseFromModel(userModel), nil
 }
 
-func (s *UserService) Create(user dto.RegisterRequest) (dto.UserResponse, error) {
+func (s *UserService) Create(user dto.SignUpRequest, role permissions.Role) (dto.UserResponse, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return dto.UserResponse{}, fmt.Errorf("failed to hash password: %w", err)
@@ -55,6 +56,7 @@ func (s *UserService) Create(user dto.RegisterRequest) (dto.UserResponse, error)
 		Name:     user.Name,
 		Email:    user.Email,
 		Password: hash,
+		Roles:    permissions.RoleCollection{role},
 	}
 
 	if err := s.userRepo.Create(&userModel); err != nil {

@@ -43,6 +43,11 @@ func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	filters := getFiltersFromRequest(r)
 	locations, err := h.locationService.List(filters.Max, filters.Filter, filters.IncludeDeleted)
 	if err != nil {
@@ -57,6 +62,11 @@ func (h *LocationHandler) listLocations(w http.ResponseWriter, r *http.Request) 
 func (h *LocationHandler) listItemsByLocationID(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -80,6 +90,11 @@ func (h *LocationHandler) listItemsByLocationID(w http.ResponseWriter, r *http.R
 func (h *LocationHandler) getLocationByID(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasReadPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -108,6 +123,11 @@ func (h *LocationHandler) createLocation(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if !currentUserRoles(r).HasWritePermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	var request dto.CreateLocationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Error("invalid location request", "error", err)
@@ -127,6 +147,11 @@ func (h *LocationHandler) createLocation(w http.ResponseWriter, r *http.Request)
 func (h *LocationHandler) deleteLocation(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
 		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).IsAdmin() {
+		res.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
