@@ -30,7 +30,7 @@ func (r *postgresItemHistoryRepository) GetItemCurrentLocationID(itemID uuid.UUI
 		select data->'data'->>'locationId' as location_id
 		from item_history
 		where item_id = $1
-		and data->>'type' = 'tracked' or data->>'type' = 'created'
+		and (data->>'type' = 'tracked' or data->>'type' = 'created')
 		order by created_at desc
 		limit 1;`
 
