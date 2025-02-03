@@ -57,11 +57,11 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 // applyMiddlewareFactory creates a single MiddlewareFunc function for applying middleware to all handlers.
 func applyMiddlewareFactory(conf *app.Config) MiddlewareFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
-		return recoverMiddleware(withAuthenticatedUserMiddleware(corsMiddleware(next, conf.ClientBaseURL), conf.SessionSecret))
+		return recoverMiddleware(WithAuthenticatedUserMiddleware(corsMiddleware(next, conf.ClientBaseURL), conf.SessionSecret))
 	}
 }
 
-func withAuthenticatedUserMiddleware(next http.HandlerFunc, sessionSecret string) http.HandlerFunc {
+func WithAuthenticatedUserMiddleware(next http.HandlerFunc, sessionSecret string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenCookie, err := r.Cookie("token")
 		if err != nil || tokenCookie == nil {
