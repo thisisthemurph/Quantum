@@ -12,6 +12,27 @@ services:
     volumes:
       - quantum-data:/var/lib/postgresql/data
 
+  test-db:
+    image: postgres:latest
+    container_name: quantum-postgres-test
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quantumdb_test
+    ports:
+      - "5433:5432"  # Exposed on a different host port to avoid conflict
+    volumes:
+      - quantum-test-data:/var/lib/postgresql/data
+    networks:
+      - quantum-network
+
 volumes:
   quantum-data:
     name: quantum-data
+  quantum-test-data:
+    name: quantum-test-data
+
+networks:
+  quantum-network:
+    driver: bridge

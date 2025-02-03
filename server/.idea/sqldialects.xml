@@ -6,6 +6,7 @@
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402680_create_items_table.down.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402680_create_items_table.up.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402681_create_locations_table.up.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402682_create_users_table.down.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402682_create_users_table.up.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1737402683_create_item_history_table.up.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/cmd/migrate/migrations/1738002948_create_items_with_current_location_view.up.sql" dialect="PostgreSQL" />
