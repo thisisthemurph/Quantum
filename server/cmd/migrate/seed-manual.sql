@@ -12,10 +12,21 @@ VALUES
     ('admin', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Adam Admin'),
     ('tracker', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Timmy Tracker'),
     ('writer', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Wayne Writer'),
-    ('reader', '$2a$10$qhV3xDdjNakp.KDYjcgnte7sX6HupQ7wjkhMMioIG/L5U2/f4xA8.', 'Randy Reader');
+    ('jane.doe', '$2a$10$kP3vXZdjMbpq.LDYmcgnue8tX7HxpQ8xjkhNMjoJG/M6V3/g5yB9.', 'Jane Doe'),
+    ('michael.smith', '$2a$10$hT2uYAdkNapq.LDYkcgnpe9sY6HvpR9wjkhOMkoIH/N7W4/h6zC0.', 'Michael Smith'),
+    ('emily.johnson', '$2a$10$pR4wXEdjOapq.MDYncgnue0sZ7IwpQ0xjkhPMloIG/O8X5/i7yD1.', 'Emily Johnson'),
+    ('david.lee', '$2a$10$sU5xYFdkPapq.NDZocgnve1sA8JxpR1xjkhQMmoIH/P9Y6/j8zE2.', 'David Lee'),
+    ('sophia.brown', '$2a$10$vW6yZGdkQbpq.ODaocgnwe2sB9KypS2xjkhRMnoIG/Q0Z7/k9AE3.', 'Sophia Brown'),
+    ('william.jones', '$2a$10$xX7zAHdkRcpq.PDbpcgnxe3sC0LzpT3xjkhSMpoIH/R1a8/lABF4.', 'William Jones'),
+    ('olivia.garcia', '$2a$10$yY8aBIdlSdpq.QDcrcgnye4sD1M0qU4xjkhTMqoIG/S2b9/mBCG5.', 'Olivia Garcia'),
+    ('james.martin', '$2a$10$zZ9bCJdmTepq.RDdsdgnze5sE2N1rV5xjkhUMroIH/T3c0/nCDH6.', 'James Martin'),
+    ('ava.thomas', '$2a$10$aA0cDKdnUfpq.SDetgnAf6sF3O2sW6xjkhVMsoIG/U4d1/oDEI7.', 'Ava Thomas'),
+    ('benjamin.moore', '$2a$10$bB1dELdoVgpq.TDfugnbg7sG4P3tX7xjkhWMtoIH/V5e2/pEFJ8.', 'Benjamin Moore');
+
 
 INSERT INTO user_roles (user_id, role)
-SELECT id, CAST(username AS user_role) AS role FROM users;
+SELECT id, CAST(username AS user_role) AS role
+FROM users;
 
 INSERT INTO locations (name, description)
 VALUES

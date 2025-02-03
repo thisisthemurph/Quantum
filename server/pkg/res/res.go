@@ -31,6 +31,14 @@ func Error(w http.ResponseWriter, message string, status int) {
 	JSON(w, map[string]string{"error": message})
 }
 
+func Unauthorized(w http.ResponseWriter) {
+	http.Error(w, "unauthorized", http.StatusUnauthorized)
+}
+
+func Forbidden(w http.ResponseWriter) {
+	http.Error(w, "forbidden", http.StatusForbidden)
+}
+
 func InternalServerError(w http.ResponseWriter) {
 	http.Error(w, "internal server error", http.StatusInternalServerError)
 }

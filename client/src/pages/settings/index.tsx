@@ -13,6 +13,7 @@ import { useSettings } from "@/hooks/use-settings.tsx";
 import { useSettingsStore } from "@/stores/SettingsStore.tsx";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/use-user.ts";
+import {UserManagementTab} from "@/pages/settings/user-management/UserManagementTab.tsx";
 
 export default function SettingsPage() {
   const user = useUser();
@@ -33,10 +34,11 @@ export default function SettingsPage() {
 
   return (
     <Page title="Settings">
-      <Tabs defaultValue="general">
+      <Tabs defaultValue="user-management">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="terminology" disabled={!user.isAdmin}>Terminology</TabsTrigger>
+          <TabsTrigger value="user-management" disabled={!user.isAdmin}>User management</TabsTrigger>
         </TabsList>
         <TabsContent value="general">
           <h1>General settings</h1>
@@ -49,6 +51,9 @@ export default function SettingsPage() {
               updateSettingsMutation.mutate({ ...settingsData, terminology: values });
             }}
           />
+        </TabsContent>
+        <TabsContent value={"user-management"}>
+          <UserManagementTab />
         </TabsContent>
       </Tabs>
     </Page>

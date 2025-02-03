@@ -12,6 +12,7 @@ import (
 )
 
 type UserRepository interface {
+	List() ([]model.User, error)
 	Get(id uuid.UUID) (model.User, error)
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
@@ -32,6 +33,29 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 type userRoleJoin struct {
 	model.User
 	Role permissions.Role `db:"role"`
+}
+
+func (r *postgresUserRepository) List() ([]model.User, error) {
+	stmt := `
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, r.role
+		from users u
+		left join user_roles r on u.id = r.user_id;`
+
+	var usersWithRoles []userRoleJoin
+	if err := r.db.Select(&usersWithRoles, stmt); err != nil {
+		return nil, err
+	}
+
+	users := make([]model.User, 0, len(usersWithRoles))
+	for _, userWithRoles := range usersWithRoles {
+		user, err := r.userRoleJoinToUserModel([]userRoleJoin{userWithRoles})
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (r *postgresUserRepository) Get(id uuid.UUID) (model.User, error) {

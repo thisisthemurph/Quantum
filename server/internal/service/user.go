@@ -24,6 +24,20 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 	}
 }
 
+func (s *UserService) List() ([]dto.UserResponse, error) {
+	users, err := s.userRepo.List()
+	if err != nil {
+		return nil, err
+	}
+
+	userResponses := make([]dto.UserResponse, 0, len(users))
+	for _, user := range users {
+		userResponses = append(userResponses, dto.NewUserResponseFromModel(user))
+	}
+
+	return userResponses, nil
+}
+
 func (s *UserService) Get(id uuid.UUID) (dto.UserResponse, error) {
 	userModel, err := s.userRepo.Get(id)
 	if err != nil {
@@ -46,17 +60,17 @@ func (s *UserService) GetByUsername(username string) (dto.UserResponse, error) {
 	return dto.NewUserResponseFromModel(userModel), nil
 }
 
-func (s *UserService) Create(user dto.SignUpRequest, role permissions.Role) (dto.UserResponse, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+func (s *UserService) Create(name, username, password string, roles permissions.RoleCollection) (dto.UserResponse, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return dto.UserResponse{}, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	userModel := model.User{
-		Name:     user.Name,
-		Username: user.Username,
+		Name:     name,
+		Username: username,
 		Password: hash,
-		Roles:    permissions.RoleCollection{role},
+		Roles:    roles,
 	}
 
 	if err := s.userRepo.Create(&userModel); err != nil {

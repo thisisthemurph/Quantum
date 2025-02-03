@@ -26,6 +26,7 @@ func BuildServerMux(app *app.App) *http.ServeMux {
 
 	handlers := []HandlerBuilder{
 		NewAuthHandler(services.UserService, app.Config.SessionSecret, app.Logger),
+		NewUserHandler(services.UserService, app.Logger),
 		NewItemHandler(services.ItemService, services.SettingsService, app.Logger),
 		NewLocationHandler(services.LocationService, services.ItemService, app.Logger),
 		NewSettingsHandler(services.SettingsService, app.Logger),
