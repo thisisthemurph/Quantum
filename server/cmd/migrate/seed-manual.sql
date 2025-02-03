@@ -25,7 +25,13 @@ VALUES
 
 
 INSERT INTO user_roles (user_id, role)
-SELECT id, CAST(username AS user_role) AS role
+SELECT id,
+    CASE username
+        WHEN 'admin' THEN 'admin'::user_role
+        WHEN 'tracker' THEN 'tracker'::user_role
+        WHEN 'writer' THEN 'writer'::user_role
+        ELSE 'reader'::user_role
+    END AS role
 FROM users;
 
 INSERT INTO locations (name, description)
