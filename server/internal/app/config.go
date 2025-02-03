@@ -18,7 +18,7 @@ func (e Environment) IsDevelopment() bool {
 	return e == DevelopmentEnvironment
 }
 
-type databaseConfig struct {
+type DatabaseConfig struct {
 	ConnectionString string
 	Name             string
 }
@@ -28,7 +28,7 @@ type Config struct {
 	ClientBaseURL string
 	SessionSecret string
 	Environment   Environment
-	Database      databaseConfig
+	Database      DatabaseConfig
 }
 
 func NewAppConfig(get func(string) string) *Config {
@@ -37,7 +37,7 @@ func NewAppConfig(get func(string) string) *Config {
 		ClientBaseURL: get("CLIENT_BASE_URL"),
 		SessionSecret: get("SESSION_SECRET"),
 		Environment:   NewEnvironment(get("ENVIRONMENT")),
-		Database: databaseConfig{
+		Database: DatabaseConfig{
 			ConnectionString: get("DATABASE_CONNECTION_STRING"),
 			Name:             get("DATABASE_NAME"),
 		},
