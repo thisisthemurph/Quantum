@@ -32,26 +32,26 @@ func NewItemService(
 	}
 }
 
-func (s *ItemService) Get(id uuid.UUID) (dto.ItemResponse, error) {
-	itemModel, err := s.itemRepo.GetByID(id)
+func (s *ItemService) Get(id uuid.UUID) (dto.ItemWithCurrentLocationResponse, error) {
+	itemModel, err := s.itemRepo.GetWithCurrentLocation(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return dto.ItemResponse{}, ErrItemNotFound
+			return dto.ItemWithCurrentLocationResponse{}, ErrItemNotFound
 		}
-		return dto.ItemResponse{}, err
+		return dto.ItemWithCurrentLocationResponse{}, err
 	}
 
-	locationID, err := s.historyRepo.GetItemCurrentLocationID(itemModel.ID)
-	if err != nil {
-		return dto.ItemResponse{}, err
+	item := dto.ItemWithCurrentLocationResponse{
+		ItemResponse: dto.NewItemResponseFromModel(itemModel.ItemModel, nil),
+		CurrentLocation: dto.CurrentLocation{
+			ID:          itemModel.LocationID,
+			Name:        itemModel.LocationName,
+			Description: itemModel.LocationDescription,
+			TrackedAt:   itemModel.TrackedAt,
+		},
 	}
 
-	locationModel, err := s.locationRepo.Get(locationID)
-	if err != nil {
-		return dto.ItemResponse{}, err
-	}
-
-	return dto.NewItemResponseFromModel(itemModel, &locationModel), nil
+	return item, nil
 }
 
 func (s *ItemService) List(groupKeyFilter *string) ([]dto.ItemWithCurrentLocationResponse, error) {
@@ -145,7 +145,7 @@ func (s *ItemService) Delete(id uuid.UUID) error {
 }
 
 func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
-	item, err := s.itemRepo.GetByID(itemID)
+	item, err := s.itemRepo.Get(itemID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrItemNotFound
@@ -205,7 +205,7 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 			results = append(results, hr)
 		case model.ItemHistoryTypeTracked:
 			d := data.(model.ItemTrackedHistoryData)
-			item, err := s.itemRepo.GetByID(itemID)
+			item, err := s.itemRepo.Get(itemID)
 			if err != nil {
 				return nil, err
 			}

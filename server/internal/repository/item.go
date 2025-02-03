@@ -7,7 +7,8 @@ import (
 )
 
 type ItemRepository interface {
-	GetByID(id uuid.UUID) (model.ItemModel, error)
+	Get(id uuid.UUID) (model.ItemModel, error)
+	GetWithCurrentLocation(id uuid.UUID) (model.ItemWithCurrentLocationModel, error)
 	List(groupKey *string) ([]model.ItemWithCurrentLocationModel, error)
 	ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error)
 	ListItemGroups(max int, filter string) ([]string, error)
@@ -26,11 +27,20 @@ func NewItemRepository(db *sqlx.DB) ItemRepository {
 	}
 }
 
-func (r *postgresItemRepository) GetByID(id uuid.UUID) (model.ItemModel, error) {
+func (r *postgresItemRepository) Get(id uuid.UUID) (model.ItemModel, error) {
 	stmt := "select * from items where id = $1;"
 	var item model.ItemModel
 	if err := r.db.Get(&item, stmt, id); err != nil {
 		return model.ItemModel{}, err
+	}
+	return item, nil
+}
+
+func (r *postgresItemRepository) GetWithCurrentLocation(id uuid.UUID) (model.ItemWithCurrentLocationModel, error) {
+	stmt := "select * from items_with_current_location where id = $1;"
+	var item model.ItemWithCurrentLocationModel
+	if err := r.db.Get(&item, stmt, id); err != nil {
+		return model.ItemWithCurrentLocationModel{}, err
 	}
 	return item, nil
 }
