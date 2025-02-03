@@ -64,6 +64,7 @@ func setUpItemHandler(db *sqlx.DB, logger *slog.Logger) *handler.ItemHandler {
 }
 
 func TestGetItemByID(t *testing.T) {
+	t.Cleanup(func() { testutils.CleanDatabase(t, application.DB) })
 	h := setUpItemHandler(application.DB, application.Logger)
 
 	adminUser := testdata.InsertAdminUser(t, application.DB)
@@ -115,6 +116,7 @@ func TestGetItemByID(t *testing.T) {
 }
 
 func TestListItems(t *testing.T) {
+	t.Cleanup(func() { testutils.CleanDatabase(t, application.DB) })
 	h := setUpItemHandler(application.DB, application.Logger)
 
 	adminUser := testdata.InsertAdminUser(t, application.DB)
