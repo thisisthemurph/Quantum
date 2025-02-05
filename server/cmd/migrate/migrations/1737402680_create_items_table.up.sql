@@ -4,8 +4,8 @@ create table if not exists items (
     reference text unique not null,
     group_key text not null,
     description text,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp
+    created_at timestamp with time zone not null default current_timestamp,
+    updated_at timestamp with time zone not null default current_timestamp
 );
 
 create index items_group_key_idx on items (group_key);
