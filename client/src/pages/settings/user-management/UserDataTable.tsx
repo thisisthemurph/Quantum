@@ -147,16 +147,14 @@ export function UserDataTable({ data, isLoading, filteredRoles, onFilteredRolesC
   }
 
   return (
-    <>
-      <section className="flex justify-between items-center px-4 py-2 mb-2 border rounded-md">
-        <div className={cn("flex gap-2")}>
-          <Input
-            placeholder="Search users by name"
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
-            className="max-w-sm sm:max-w-md"
-          />
-        </div>
+    <div className="rounded-md border">
+      <section className="flex justify-between items-center p-2">
+        <Input
+          placeholder="Search users by name"
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
+          className="max-w-sm sm:max-w-md"
+        />
         <div className={cn("flex gap-2")}>
           {ALL_ROLES.map((role) => (
             <RoleBadge
@@ -168,56 +166,54 @@ export function UserDataTable({ data, isLoading, filteredRoles, onFilteredRolesC
           ))}
         </div>
       </section>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
                       )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {isLoading ? "Loading users..." : "No content"}
-                </TableCell>
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </TableCell>
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center"
+              >
+                {isLoading ? "Loading users..." : "No content"}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
