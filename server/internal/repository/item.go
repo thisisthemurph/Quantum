@@ -11,6 +11,7 @@ import (
 type ItemRepository interface {
 	Get(id uuid.UUID) (model.ItemModel, error)
 	GetWithCurrentLocation(id uuid.UUID) (model.ItemWithCurrentLocationModel, error)
+	GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error)
 	List(groupKey *string) ([]model.ItemWithCurrentLocationModel, error)
 	ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error)
 	ListItemGroups(max int, filter string) ([]string, error)
@@ -130,6 +131,20 @@ func (r *postgresItemRepository) Delete(id uuid.UUID) error {
 	stmt := "delete from items where id = $1;"
 	_, err := r.db.Exec(stmt, id)
 	return err
+}
+
+func (r *postgresItemRepository) GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error) {
+	stmt := `
+		select *
+		from item_history
+		where item_id = $1
+		order by created_at desc;`
+
+	var histories = make([]model.ItemHistoryModel, 0)
+	if err := r.db.Select(&histories, stmt, itemID); err != nil {
+		return nil, err
+	}
+	return histories, nil
 }
 
 func (r *postgresItemRepository) AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error {

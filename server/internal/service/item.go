@@ -163,7 +163,7 @@ func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
 }
 
 func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord, error) {
-	historyModel, err := s.historyRepo.GetItemHistory(itemID)
+	historyModel, err := s.itemRepo.GetItemHistory(itemID)
 	if err != nil {
 		return nil, err
 	}

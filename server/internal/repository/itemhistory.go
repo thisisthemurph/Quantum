@@ -3,12 +3,10 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"quantum/internal/model"
 )
 
 type ItemHistoryRepository interface {
 	GetItemCurrentLocationID(itemID uuid.UUID) (uuid.UUID, error)
-	GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error)
 }
 
 type postgresItemHistoryRepository struct {
@@ -37,18 +35,4 @@ func (r *postgresItemHistoryRepository) GetItemCurrentLocationID(itemID uuid.UUI
 	}
 	value := uuid.MustParse(locationID)
 	return value, nil
-}
-
-func (r *postgresItemHistoryRepository) GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error) {
-	stmt := `
-		select *
-		from item_history
-		where item_id = $1
-		order by created_at desc;`
-
-	var histories = make([]model.ItemHistoryModel, 0)
-	if err := r.db.Select(&histories, stmt, itemID); err != nil {
-		return nil, err
-	}
-	return histories, nil
 }
