@@ -7,11 +7,12 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID                  `db:"id"`
-	Name      string                     `db:"name"`
-	Username  string                     `db:"username"`
-	Password  []byte                     `db:"password"`
-	Roles     permissions.RoleCollection `db:"roles"`
-	CreatedAt time.Time                  `db:"created_at"`
-	UpdatedAt time.Time                  `db:"updated_at"`
+	ID             uuid.UUID                  `db:"id"`
+	Name           string                     `db:"name"`
+	Username       string                     `db:"username"`
+	Password       []byte                     `db:"password"`
+	Roles          permissions.RoleCollection `db:"roles"`
+	LastLoggedInAt *time.Time                 `db:"last_logged_in_at"`
+	CreatedAt      time.Time                  `db:"created_at"`
+	UpdatedAt      time.Time                  `db:"updated_at"`
 }

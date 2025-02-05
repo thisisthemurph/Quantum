@@ -12,7 +12,7 @@ import (
 )
 
 type UserRepository interface {
-	List() ([]model.User, error)
+	List(roleFilters []string) ([]model.User, error)
 	Get(id uuid.UUID) (model.User, error)
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
@@ -35,26 +35,52 @@ type userRoleJoin struct {
 	Role permissions.Role `db:"role"`
 }
 
-func (r *postgresUserRepository) List() ([]model.User, error) {
-	stmt := `
-		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, r.role
-		from users u
-		left join user_roles r on u.id = r.user_id;`
+func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error) {
+	query, args, err := sqlx.In(`
+		with matched_users as (
+			select distinct u.id
+			from users u
+			join user_roles ur
+			on u.id = ur.user_id
+			where ur.role in (?)
+		)
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, ur.role
+		from users u left join user_roles ur on u.id = ur.user_id
+		where u.id in (select id from matched_users)
+		order by u.name, ur.role;`, roleFilters)
 
-	var usersWithRoles []userRoleJoin
-	if err := r.db.Select(&usersWithRoles, stmt); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	users := make([]model.User, 0, len(usersWithRoles))
-	for _, userWithRoles := range usersWithRoles {
-		user, err := r.userRoleJoinToUserModel([]userRoleJoin{userWithRoles})
+	query = r.db.Rebind(query)
+
+	var usersWithRoles []userRoleJoin
+	if err := r.db.Select(&usersWithRoles, query, args...); err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[uuid.UUID][]userRoleJoin)
+	for _, u := range usersWithRoles {
+		userMap[u.ID] = append(userMap[u.ID], u)
+	}
+
+	users := make([]model.User, 0, len(userMap))
+	for _, u := range userMap {
+		user, err := r.userRoleJoinToUserModel(u)
 		if err != nil {
 			return nil, err
 		}
 		users = append(users, user)
 	}
-
+	//for _, u := range usersWithRoles {
+	//	user, err := r.userRoleJoinToUserModel([]userRoleJoin{u})
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	users = append(users, user)
+	//}
+	//
 	return users, nil
 }
 

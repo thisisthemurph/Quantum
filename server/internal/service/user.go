@@ -24,8 +24,8 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) List() ([]dto.UserResponse, error) {
-	users, err := s.userRepo.List()
+func (s *UserService) List(roleFilters []string) ([]dto.UserResponse, error) {
+	users, err := s.userRepo.List(roleFilters)
 	if err != nil {
 		return nil, err
 	}

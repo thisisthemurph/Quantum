@@ -8,6 +8,7 @@ import (
 	"quantum/internal/permissions"
 	"quantum/internal/service"
 	"quantum/pkg/res"
+	"strings"
 )
 
 type UserHandler struct {
@@ -45,7 +46,15 @@ func (h *UserHandler) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.List()
+	rolesParam := r.URL.Query().Get("roles")
+	var roles []string
+	if rolesParam != "" {
+		roles = strings.Split(rolesParam, ",")
+	} else {
+		roles = []string{"admin", "reader", "writer", "tracker"}
+	}
+
+	users, err := h.userService.List(roles)
 	if err != nil {
 		res.Error(w, err.Error(), http.StatusInternalServerError)
 		return
