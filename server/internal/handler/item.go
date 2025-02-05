@@ -66,6 +66,7 @@ func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, service.ErrItemNotFound) {
 			res.Error(w, "item not found", http.StatusNotFound)
+			return
 		}
 		res.InternalServerError(w)
 		return
