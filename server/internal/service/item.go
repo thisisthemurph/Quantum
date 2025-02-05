@@ -13,20 +13,17 @@ var ErrItemNotFound = errors.New("item not found")
 
 type ItemService struct {
 	itemRepo     repository.ItemRepository
-	historyRepo  repository.ItemHistoryRepository
 	locationRepo repository.LocationRepository
 	userRepo     repository.UserRepository
 }
 
 func NewItemService(
 	itemRepo repository.ItemRepository,
-	historyRepo repository.ItemHistoryRepository,
 	locationRepo repository.LocationRepository,
 	userRepo repository.UserRepository,
 ) *ItemService {
 	return &ItemService{
 		itemRepo:     itemRepo,
-		historyRepo:  historyRepo,
 		locationRepo: locationRepo,
 		userRepo:     userRepo,
 	}
