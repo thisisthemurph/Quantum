@@ -110,20 +110,19 @@ func (r *postgresItemRepository) Create(item *model.ItemModel, createdByUserID, 
 		}
 	}()
 
-	err = r.db.Get(item, stmt, item.Identifier, item.Reference, item.Description, item.GroupKey)
-	if err != nil {
+	if err = tx.Get(item, stmt, item.Identifier, item.Reference, item.Description, item.GroupKey); err != nil {
 		return fmt.Errorf("failed to insert item: %w", err)
 	}
 
-	err = r.updateHistoryOnItemCreation(tx, createdByUserID, createdAtLocationID, *item)
-	if err != nil {
-		err = tx.Commit()
-		if err != nil {
-			return fmt.Errorf("failed to commit transaction: %w", err)
-		}
+	if err = r.updateHistoryOnItemCreation(tx, createdByUserID, createdAtLocationID, *item); err != nil {
+		return fmt.Errorf("failed to update history: %w", err)
 	}
 
-	return err
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (r *postgresItemRepository) Delete(id uuid.UUID) error {
