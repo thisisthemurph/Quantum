@@ -139,6 +139,7 @@ export function LocationDataTable({ data, onDelete }: LocationDataTableProps) {
     state: {
       sorting,
       columnFilters,
+      // @ts-expect-error: columnVisibility is not assignable to type 'VisibilityState'
       columnVisibility,
       rowSelection,
     },
