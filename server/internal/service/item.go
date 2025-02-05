@@ -110,18 +110,20 @@ func (s *ItemService) GroupKeyExists(groupKey string) (bool, error) {
 	return s.itemRepo.GroupKeyExists(groupKey)
 }
 
-func (s *ItemService) Create(userID uuid.UUID, item dto.CreateItemRequest) (dto.ItemResponse, error) {
-	itemModel := model.ItemModel{
-		Identifier:  item.Identifier,
-		Reference:   item.Reference,
-		GroupKey:    item.GroupKey,
-		Description: item.Description,
+func (s *ItemService) Create(userID uuid.UUID, req dto.CreateItemRequest) (dto.ItemResponse, error) {
+	location, err := s.locationRepo.Get(req.LocationID)
+	if err != nil {
+		return dto.ItemResponse{}, ErrLocationNotFound
 	}
 
-	if err := s.itemRepo.Create(&itemModel); err != nil {
-		return dto.ItemResponse{}, err
+	itemModel := model.ItemModel{
+		Identifier:  req.Identifier,
+		Reference:   req.Reference,
+		GroupKey:    req.GroupKey,
+		Description: req.Description,
 	}
-	if err := s.historyRepo.ItemCreated(userID, itemModel, item.LocationID); err != nil {
+
+	if err := s.itemRepo.Create(&itemModel, userID, location.ID); err != nil {
 		return dto.ItemResponse{}, err
 	}
 
@@ -134,8 +136,8 @@ func (s *ItemService) Create(userID uuid.UUID, item dto.CreateItemRequest) (dto.
 		CreatedAt:   itemModel.CreatedAt,
 		UpdatedAt:   itemModel.UpdatedAt,
 		CurrentLocation: &dto.ItemCurrentLocation{
-			ID:   item.LocationID,
-			Name: "NOT IMPLEMENTED",
+			ID:   location.ID,
+			Name: location.Name,
 		},
 	}, nil
 }

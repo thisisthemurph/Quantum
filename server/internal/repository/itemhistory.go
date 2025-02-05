@@ -10,7 +10,6 @@ import (
 type ItemHistoryRepository interface {
 	GetItemCurrentLocationID(itemID uuid.UUID) (uuid.UUID, error)
 	GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error)
-	ItemCreated(userID uuid.UUID, item model.ItemModel, locationID uuid.UUID) error
 	ItemTracked(userID, itemID, locationID uuid.UUID) error
 }
 
@@ -54,40 +53,6 @@ func (r *postgresItemHistoryRepository) GetItemHistory(itemID uuid.UUID) ([]mode
 		return nil, err
 	}
 	return histories, nil
-}
-
-func (r *postgresItemHistoryRepository) ItemCreated(userID uuid.UUID, item model.ItemModel, locationID uuid.UUID) error {
-	historyData := model.ItemCreatedHistoryData{
-		Reference:   item.Reference,
-		GroupKey:    item.GroupKey,
-		Description: item.Description,
-		LocationID:  locationID,
-	}
-
-	jsonData, err := json.Marshal(historyData)
-	if err != nil {
-		return err
-	}
-
-	history := model.HistoryDataContainer{
-		Type: model.ItemHistoryTypeCreated,
-		Data: jsonData,
-	}
-
-	jsonHistoryData, err := json.Marshal(history)
-	if err != nil {
-		return err
-	}
-
-	stmt := `
-		insert into item_history (user_id, item_id, data)
-		values ($1, $2, $3);`
-
-	_, err = r.db.Exec(stmt, userID, item.ID, jsonHistoryData)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (r *postgresItemHistoryRepository) ItemTracked(userID, itemID, locationID uuid.UUID) error {

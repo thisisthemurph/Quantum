@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"quantum/internal/model"
@@ -13,7 +15,7 @@ type ItemRepository interface {
 	ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error)
 	ListItemGroups(max int, filter string) ([]string, error)
 	GroupKeyExists(groupKey string) (bool, error)
-	Create(item *model.ItemModel) error
+	Create(item *model.ItemModel, createdByUserID, createdAtLocationID uuid.UUID) error
 	Delete(id uuid.UUID) error
 }
 
@@ -92,17 +94,74 @@ func (r *postgresItemRepository) GroupKeyExists(groupKey string) (bool, error) {
 	return exists, nil
 }
 
-func (r *postgresItemRepository) Create(item *model.ItemModel) error {
+func (r *postgresItemRepository) Create(item *model.ItemModel, createdByUserID, createdAtLocationID uuid.UUID) error {
 	stmt := `
 		insert into items (identifier, reference, description, group_key) 
 		values ($1, $2, $3, $4)
 		returning id, created_at, updated_at;`
 
-	return r.db.Get(item, stmt, item.Identifier, item.Reference, item.Description, item.GroupKey)
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	err = r.db.Get(item, stmt, item.Identifier, item.Reference, item.Description, item.GroupKey)
+	if err != nil {
+		return fmt.Errorf("failed to insert item: %w", err)
+	}
+
+	err = r.updateHistoryOnItemCreation(tx, createdByUserID, createdAtLocationID, *item)
+	if err != nil {
+		err = tx.Commit()
+		if err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+	}
+
+	return err
 }
 
 func (r *postgresItemRepository) Delete(id uuid.UUID) error {
 	stmt := "delete from items where id = $1;"
 	_, err := r.db.Exec(stmt, id)
 	return err
+}
+
+func (r *postgresItemRepository) updateHistoryOnItemCreation(tx *sqlx.Tx, userID, locationID uuid.UUID, item model.ItemModel) error {
+	historyData := model.ItemCreatedHistoryData{
+		Reference:   item.Reference,
+		GroupKey:    item.GroupKey,
+		Description: item.Description,
+		LocationID:  locationID,
+	}
+
+	jsonData, err := json.Marshal(historyData)
+	if err != nil {
+		return err
+	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeCreated,
+		Data: jsonData,
+	}
+
+	jsonHistoryData, err := json.Marshal(history)
+	if err != nil {
+		return err
+	}
+
+	stmt := `
+		insert into item_history (user_id, item_id, data)
+		values ($1, $2, $3);`
+
+	_, err = tx.Exec(stmt, userID, item.ID, jsonHistoryData)
+	if err != nil {
+		return err
+	}
+	return nil
 }
