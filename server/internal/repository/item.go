@@ -17,6 +17,7 @@ type ItemRepository interface {
 	GroupKeyExists(groupKey string) (bool, error)
 	Create(item *model.ItemModel, createdByUserID, createdAtLocationID uuid.UUID) error
 	Delete(id uuid.UUID) error
+	AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error
 }
 
 type postgresItemRepository struct {
@@ -129,6 +130,37 @@ func (r *postgresItemRepository) Delete(id uuid.UUID) error {
 	stmt := "delete from items where id = $1;"
 	_, err := r.db.Exec(stmt, id)
 	return err
+}
+
+func (r *postgresItemRepository) AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error {
+	historyData := model.ItemTrackedHistoryData{
+		LocationID: locationID,
+	}
+
+	jsonData, err := json.Marshal(historyData)
+	if err != nil {
+		return err
+	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeTracked,
+		Data: jsonData,
+	}
+
+	jsonHistoryData, err := json.Marshal(history)
+	if err != nil {
+		return err
+	}
+
+	stmt := `
+		insert into item_history (user_id, item_id, data)
+		values ($1, $2, $3);`
+
+	_, err = r.db.Exec(stmt, userID, itemID, jsonHistoryData)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *postgresItemRepository) updateHistoryOnItemCreation(tx *sqlx.Tx, userID, locationID uuid.UUID, item model.ItemModel) error {

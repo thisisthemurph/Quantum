@@ -155,7 +155,7 @@ func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
 		return err
 	}
 
-	if err := s.historyRepo.ItemTracked(userID, item.ID, locationID); err != nil {
+	if err := s.itemRepo.AppendNewItemTrackedHistory(userID, item.ID, locationID); err != nil {
 		return err
 	}
 

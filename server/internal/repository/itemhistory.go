@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"quantum/internal/model"
@@ -10,7 +9,6 @@ import (
 type ItemHistoryRepository interface {
 	GetItemCurrentLocationID(itemID uuid.UUID) (uuid.UUID, error)
 	GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error)
-	ItemTracked(userID, itemID, locationID uuid.UUID) error
 }
 
 type postgresItemHistoryRepository struct {
@@ -53,35 +51,4 @@ func (r *postgresItemHistoryRepository) GetItemHistory(itemID uuid.UUID) ([]mode
 		return nil, err
 	}
 	return histories, nil
-}
-
-func (r *postgresItemHistoryRepository) ItemTracked(userID, itemID, locationID uuid.UUID) error {
-	historyData := model.ItemTrackedHistoryData{
-		LocationID: locationID,
-	}
-
-	jsonData, err := json.Marshal(historyData)
-	if err != nil {
-		return err
-	}
-
-	history := model.HistoryDataContainer{
-		Type: model.ItemHistoryTypeTracked,
-		Data: jsonData,
-	}
-
-	jsonHistoryData, err := json.Marshal(history)
-	if err != nil {
-		return err
-	}
-
-	stmt := `
-		insert into item_history (user_id, item_id, data)
-		values ($1, $2, $3);`
-
-	_, err = r.db.Exec(stmt, userID, itemID, jsonHistoryData)
-	if err != nil {
-		return err
-	}
-	return nil
 }
