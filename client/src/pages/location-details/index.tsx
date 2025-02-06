@@ -1,11 +1,16 @@
 import { Page } from "@/components/Page.tsx";
-import { useQuery } from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import { useParams } from "react-router";
-import { useLocationsApi } from "@/data/api/locations.ts";
 import { LocationDetailsCard } from "@/pages/location-details/LocationDetailsCard.tsx";
 import { ItemDataTable } from "@/components/ItemDataTable/ItemDataTable.tsx";
 import { useSettings } from "@/hooks/use-settings.tsx";
-import {usePersistentColumns} from "@/hooks/use-persistent-columns.ts";
+import { usePersistentColumns } from "@/hooks/use-persistent-columns.ts";
+import { useApi } from "@/hooks/use-api";
+import { Location } from "@/data/models/location";
+import {Item, ItemWithCurrentLocation} from "@/data/models/item.ts";
+import {toast} from "sonner";
+import {ConfirmAlertDialog} from "@/components/ConfirmAlertDialog.tsx";
+import {useState} from "react";
 
 const visibleColumns = {
   location: false,
@@ -17,34 +22,72 @@ const visibleColumns = {
 };
 
 export default function LocationDetailsPage() {
+  const api = useApi();
+  const queryClient = useQueryClient();
   const { terminology } = useSettings();
   const { locationId } = useParams();
-  const { getLocation, listItemsAtLocation } = useLocationsApi();
+  const [itemPendingDeletion, setItemPendingDeletion] = useState<Item | undefined>();
   const persistentColumns = usePersistentColumns(
     { key: "location-details-item-listing", defaults: visibleColumns });
 
   const {isLoading: isLocationLoading, data: location} = useQuery({
     queryKey: ["location", locationId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!locationId) return;
-      return getLocation(locationId);
+      const result = await api<Location>(`/location/${locationId}`);
+      return result.data;
     },
   });
 
   const itemsQuery = useQuery({
     queryKey: ["items-at-location", locationId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!locationId) return;
-      return listItemsAtLocation(locationId);
+      const result = await api<ItemWithCurrentLocation[]>(`/location/${locationId}/items`);
+      return result.data;
+    },
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async ({itemId}: { itemId: string }) => {
+      await api<void>(`/item/${itemId}`, { method: "DELETE" });
+    },
+    onSuccess: async () => {
+      toast.success("Item deleted");
+      await queryClient.invalidateQueries({ queryKey: ["items"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete item")
     },
   });
 
   return (
     <Page title={`${terminology.location} details`}>
-      {isLocationLoading || !location ? <p>Loading...</p> : <LocationDetailsCard location={location} itemCount={itemsQuery.data?.length ?? 0} />}
-      {itemsQuery.isLoading || !itemsQuery.data
+      {isLocationLoading || !location
         ? <p>Loading...</p>
-        : <ItemDataTable data={itemsQuery.data} persistentColumns={persistentColumns} />}
+        : <LocationDetailsCard location={location} itemCount={itemsQuery.data?.length ?? 0} />}
+
+      <ItemDataTable
+        data={itemsQuery.data ?? []}
+        persistentColumns={persistentColumns}
+        onDeleteItem={setItemPendingDeletion}
+      />
+
+      <ConfirmAlertDialog
+        target={itemPendingDeletion!}
+        open={!!itemPendingDeletion}
+        onOpenChange={(opening) => {
+          if (!opening) setItemPendingDeletion(undefined);
+        }}
+        title={`Delete ${terminology.item.toLowerCase()}`}
+        description={(item) => (
+          <p>Are you sure you want to delete {terminology.item.toLowerCase()} {" "}
+            <span className="font-semibold">{item.reference}</span>?
+          </p>
+        )}
+        confirmText="Delete"
+        onConfirm={(item) => deleteItemMutation.mutate({ itemId: item.id })}
+      />
     </Page>
   );
 }

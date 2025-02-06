@@ -47,8 +47,7 @@ export default function ItemListingPage() {
       toast.success("Item deleted");
       await queryClient.invalidateQueries({ queryKey: ["items"] });
     },
-    onError: (err) => {
-      console.error(err);
+    onError: () => {
       toast.error("Failed to delete item")
     },
   });
