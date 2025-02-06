@@ -10,10 +10,12 @@ import {Button} from "@/components/ui/button.tsx";
 import {Location} from "@/data/models/location.ts";
 import {Link} from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
-import {Box} from "lucide-react";
+import {Box, CircleX} from "lucide-react";
 import {TrackItemFormDialog} from "@/pages/item-details/TrackItemFormDialog.tsx";
 import Barcode from "react-barcode";
 import { useUser } from "@/hooks/use-user.ts";
+import {useEffect} from "react";
+import { toast } from "sonner";
 
 interface ItemDetailsProps {
   item: Item;
@@ -26,13 +28,24 @@ export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSear
   const user = useUser();
   const { terminology } = useSettings();
 
+  const itemIsDeleted = item.deleted;
+
+  useEffect(() => {
+    if (itemIsDeleted) {
+      toast.warning(`This ${terminology.item.toLowerCase()} is deleted`);
+    }
+  }, [itemIsDeleted, terminology.item]);
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2 text-xl">
-            <Box size={25} strokeWidth={1} />
-            <div className="h-full py-2">{item.reference}</div>
+            {item.deleted ? <CircleX className="text-destructive" /> : <Box size={25} strokeWidth={1}/>}
+            <div className="h-full py-2">
+              {item.deleted && <span>Deleted item: </span>}
+              <span>{item.reference}</span>
+            </div>
           </CardTitle>
           <Button variant="outline" asChild>
             <Link

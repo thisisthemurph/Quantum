@@ -16,6 +16,7 @@ type ItemResponse struct {
 	GroupKey        string               `json:"groupKey"`
 	Description     *string              `json:"description"`
 	CurrentLocation *ItemCurrentLocation `json:"currentLocation"`
+	Deleted         bool                 `json:"deleted"`
 	CreatedAt       time.Time            `json:"createdAt"`
 	UpdatedAt       time.Time            `json:"updatedAt"`
 }
@@ -27,6 +28,7 @@ func NewItemResponseFromModel(item model.ItemModel, location *model.LocationMode
 		Reference:   item.Reference,
 		GroupKey:    item.GroupKey,
 		Description: item.Description,
+		Deleted:     item.Deleted,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	}

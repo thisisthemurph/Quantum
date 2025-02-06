@@ -8,6 +8,7 @@ export type Item = {
     id: string;
     name: string;
   };
+  deleted: boolean;
   createdAt: string;
   updatedAt: string;
 }

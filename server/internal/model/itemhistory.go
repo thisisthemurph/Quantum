@@ -89,7 +89,7 @@ func (h *ItemHistoryModel) ParseData() (ItemHistoryType, interface{}, error) {
 		}
 		return ItemHistoryTypeTracked, data, nil
 	case ItemHistoryTypeDeleted:
-		return ItemHistoryTypeTracked, nil, nil
+		return ItemHistoryTypeDeleted, nil, nil
 	case ItemHistoryTypeRestored:
 		return ItemHistoryTypeRestored, nil, nil
 	default:
