@@ -25,15 +25,9 @@ interface HttpErrorResponse {
 type HttpResponse<T> = HttpSuccessResponse<T> | HttpErrorResponse;
 
 export const useApi = (base?: string) => {
-  if (!import.meta.env.VITE_API_BASE_URL) {
-    throw new Error("VITE_API_BASE_URL is not defined");
-  }
-  if (base !== undefined && !base.startsWith("/")) {
-    throw new Error("Base must start with a /");
-  }
-  if (base !== undefined && base.endsWith("/")) {
-    throw new Error("Base must not end with a /");
-  }
+  console.assert(import.meta.env.VITE_API_BASE_URL, "VITE_API_BASE_URL is not defined");
+  console.assert(base === undefined || base.startsWith("/"), "Base must start with a /");
+  console.assert(base === undefined || !base.endsWith("/"), "Base must not end with a /");
 
   const baseUrl = import.meta.env.VITE_API_BASE_URL + (base ?? "");
 
@@ -41,9 +35,7 @@ export const useApi = (base?: string) => {
     endpoint: string,
     options?: UseApiOptions
   ): Promise<HttpResponse<T extends void ? void : T> | HttpErrorResponse> => {
-    if (!endpoint.startsWith("/")) {
-      throw new Error("Endpoint must start with a /");
-    }
+    console.assert(endpoint.startsWith("/"), `Endpoint ${endpoint} must start with a /`);
 
     const headers = {
       // Only include the Content-Type header if the body is not an instance of FormData
