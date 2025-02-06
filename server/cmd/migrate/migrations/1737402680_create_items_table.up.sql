@@ -4,6 +4,7 @@ create table if not exists items (
     reference text unique not null,
     group_key text not null,
     description text,
+    deleted boolean not null default false,
     created_at timestamp with time zone not null default current_timestamp,
     updated_at timestamp with time zone not null default current_timestamp
 );

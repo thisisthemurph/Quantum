@@ -36,6 +36,7 @@ func NewItemHandler(
 func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/item/groups", mf(h.listItemGroups))
 	mux.HandleFunc("GET /api/v1/item/{itemId}", mf(h.getItemByID))
+	mux.HandleFunc("DELETE /api/v1/item/{itemId}", mf(h.deleteItem))
 	mux.HandleFunc("GET /api/v1/item/groups/exist", mf(h.getItemGroupsExist))
 	mux.HandleFunc("GET /api/v1/item/{itemId}/history", mf(h.getItemHistory))
 	mux.HandleFunc("GET /api/v1/item/{itemId}/history/csv", mf(h.downloadItemHistoryCSV))
@@ -160,6 +161,34 @@ func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.JSON(w, newItem)
+}
+
+func (h *ItemHandler) deleteItem(w http.ResponseWriter, r *http.Request) {
+	userID, authed := currentUserID(r)
+	if !authed {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).IsAdmin() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	itemID, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		h.logger.Error("invalid item id", "error", err)
+		res.Error(w, "invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.itemService.Delete(itemID, userID); err != nil {
+		h.logger.Error("error deleting item", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {

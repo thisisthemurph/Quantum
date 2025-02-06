@@ -17,7 +17,7 @@ type ItemRepository interface {
 	ListItemGroups(max int, filter string) ([]string, error)
 	GroupKeyExists(groupKey string) (bool, error)
 	Create(item *model.ItemModel, createdByUserID, createdAtLocationID uuid.UUID) error
-	Delete(id uuid.UUID) error
+	Delete(itemID, userID uuid.UUID) error
 	AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error
 }
 
@@ -53,7 +53,8 @@ func (r *postgresItemRepository) List(groupKey *string) ([]model.ItemWithCurrent
 	stmt := `
 		select * 
 		from items_with_current_location
-		where ($1::text is null or group_key = $1);`
+		where ($1::text is null or group_key = $1)
+			and deleted = false;`
 
 	var items = make([]model.ItemWithCurrentLocationModel, 0)
 	if err := r.db.Select(&items, stmt, groupKey); err != nil {
@@ -78,7 +79,7 @@ func (r *postgresItemRepository) ListItemGroups(max int, filter string) ([]strin
 }
 
 func (r *postgresItemRepository) ListByLocationID(locationID uuid.UUID) ([]model.ItemWithCurrentLocationModel, error) {
-	stmt := "select * from items_with_current_location where location_id = $1;"
+	stmt := "select * from items_with_current_location where location_id = $1 and deleted = false;"
 
 	var items = make([]model.ItemWithCurrentLocationModel, 0)
 	if err := r.db.Select(&items, stmt, locationID); err != nil {
@@ -127,10 +128,33 @@ func (r *postgresItemRepository) Create(item *model.ItemModel, createdByUserID, 
 	return nil
 }
 
-func (r *postgresItemRepository) Delete(id uuid.UUID) error {
-	stmt := "delete from items where id = $1;"
-	_, err := r.db.Exec(stmt, id)
-	return err
+func (r *postgresItemRepository) Delete(itemID, userID uuid.UUID) error {
+	stmt := "update items set deleted = true where id = $1;"
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	_, err = tx.Exec(stmt, itemID)
+	if err != nil {
+		return fmt.Errorf("failed to delete item: %w", err)
+	}
+
+	if err = r.updateHistoryOnItemDeletion(tx, userID, itemID); err != nil {
+		return fmt.Errorf("failed to update history: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (r *postgresItemRepository) GetItemHistory(itemID uuid.UUID) ([]model.ItemHistoryModel, error) {
@@ -178,6 +202,19 @@ func (r *postgresItemRepository) AppendNewItemTrackedHistory(userID, itemID, loc
 	return nil
 }
 
+func (r *postgresItemRepository) insertHistoryRecord(tx *sqlx.Tx, userID, itemID uuid.UUID, data json.RawMessage) error {
+	stmt := `
+		insert into item_history (user_id, item_id, data)
+		values ($1, $2, $3);`
+
+	_, err := tx.Exec(stmt, userID, itemID, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *postgresItemRepository) updateHistoryOnItemCreation(tx *sqlx.Tx, userID, locationID uuid.UUID, item model.ItemModel) error {
 	historyData := model.ItemCreatedHistoryData{
 		Reference:   item.Reference,
@@ -201,13 +238,32 @@ func (r *postgresItemRepository) updateHistoryOnItemCreation(tx *sqlx.Tx, userID
 		return err
 	}
 
-	stmt := `
-		insert into item_history (user_id, item_id, data)
-		values ($1, $2, $3);`
+	if err := r.insertHistoryRecord(tx, userID, item.ID, jsonHistoryData); err != nil {
+		return err
+	}
 
-	_, err = tx.Exec(stmt, userID, item.ID, jsonHistoryData)
+	return nil
+}
+
+func (r *postgresItemRepository) updateHistoryOnItemDeletion(tx *sqlx.Tx, userID, itemID uuid.UUID) error {
+	emptyJSONObject, err := json.Marshal(struct{}{})
 	if err != nil {
 		return err
 	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeDeleted,
+		Data: emptyJSONObject,
+	}
+
+	jsonHistoryData, err := json.Marshal(history)
+	if err != nil {
+		return err
+	}
+
+	if err := r.insertHistoryRecord(tx, userID, itemID, jsonHistoryData); err != nil {
+		return err
+	}
+
 	return nil
 }

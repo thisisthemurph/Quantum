@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table.tsx";
-import { ItemWithCurrentLocation } from "@/data/models/item.ts";
+import {Item, ItemWithCurrentLocation} from "@/data/models/item.ts";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { useItemDataTableColumns } from "@/components/ItemDataTable/useItemDataTableColumns.tsx";
 import { useMediaQuery } from "@/hooks/useMediaQuery.ts";
@@ -38,12 +38,16 @@ type HideableColumnName = "updated" | "created" | "description" | "location" | "
 type ItemDataTableProps = {
   data: ItemWithCurrentLocation[];
   persistentColumns?: PersistentColumnsContext<HideableColumnName>;
+  onDeleteItem: (item: Item) => void;
 }
 
-export function ItemDataTable({ data, persistentColumns }: ItemDataTableProps) {
+export function ItemDataTable({ data, persistentColumns, onDeleteItem }: ItemDataTableProps) {
   const { terminology } = useSettings();
   const isMediumScreenOrSmaller = useMediaQuery("(max-width: 768px)");
-  const columns = useItemDataTableColumns();
+
+  const columns = useItemDataTableColumns({
+    onDelete: onDeleteItem,
+  });
 
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -91,6 +95,7 @@ export function ItemDataTable({ data, persistentColumns }: ItemDataTableProps) {
     state: {
       sorting,
       columnFilters,
+      // @ts-expect-error: Type 'VisibilityState' is not assignable to type 'Record<string, boolean>'.
       columnVisibility,
       rowSelection,
     },

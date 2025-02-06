@@ -1,5 +1,5 @@
 import {ColumnDef} from "@tanstack/react-table";
-import {ItemWithCurrentLocation} from "@/data/models/item.ts";
+import {Item, ItemWithCurrentLocation} from "@/data/models/item.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {ArrowUpDown} from "lucide-react";
@@ -10,7 +10,11 @@ import {toast} from "sonner";
 import {useSettings} from "@/hooks/use-settings.tsx";
 import {TimestampCell} from "@/components/ItemDataTable/TimestampCell.tsx";
 
-export function useItemDataTableColumns() {
+interface ItemDataTableColumns {
+  onDelete: (item: Item) => void;
+}
+
+export function useItemDataTableColumns({ onDelete }: ItemDataTableColumns) {
   const { terminology } = useSettings();
 
   const columns: ColumnDef<ItemWithCurrentLocation>[] = [
@@ -155,9 +159,7 @@ export function useItemDataTableColumns() {
             navigator.clipboard.writeText(row.original.description)
               .then(() => toast.success("Description copied to clipboard"));
           }}
-          onDeleteItem={() => {
-            toast.error("Item deletion is not currently implemented");
-          }}
+          onDeleteItem={() => onDelete(row.original)}
         />
       ),
     },

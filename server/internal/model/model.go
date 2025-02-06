@@ -12,6 +12,7 @@ type ItemModel struct {
 	Reference   string    `db:"reference"`
 	GroupKey    string    `db:"group_key"`
 	Description *string   `db:"description"`
+	Deleted     bool      `db:"deleted"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }

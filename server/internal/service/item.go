@@ -139,8 +139,8 @@ func (s *ItemService) Create(userID uuid.UUID, req dto.CreateItemRequest) (dto.I
 	}, nil
 }
 
-func (s *ItemService) Delete(id uuid.UUID) error {
-	return s.itemRepo.Delete(id)
+func (s *ItemService) Delete(itemID, userID uuid.UUID) error {
+	return s.itemRepo.Delete(itemID, userID)
 }
 
 func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
