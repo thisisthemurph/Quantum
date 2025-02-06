@@ -34,7 +34,7 @@ export default function SettingsPage() {
 
   return (
     <Page title="Settings">
-      <Tabs defaultValue="user-management">
+      <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="terminology" disabled={!user.isAdmin}>Terminology</TabsTrigger>
