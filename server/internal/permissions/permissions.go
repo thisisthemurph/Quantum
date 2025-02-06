@@ -4,7 +4,7 @@ import "strings"
 
 // Role is the role of the user in the system.
 //
-//	admin: can do everything including delete items and locations. Implies reader, writer and tracker.
+//	admin: can do most things, including delete items and locations. Implies reader, writer. Does not imply tracker.
 //	writer: can create/update items and locations but cannot delete them. Implies reader. Does not imply tracker.
 //	tracker: can change the location of an item, but cannot create/update/delete. Implies reader.
 //	reader: can only read items and locations.
@@ -76,5 +76,5 @@ func (c RoleCollection) HasWritePermissions() bool {
 // HasTrackPermissions checks if the user has the TrackerRole.
 // The AdminRole is also considered a tracker.
 func (c RoleCollection) HasTrackPermissions() bool {
-	return c.HasRole(TrackerRole) || c.HasRole(AdminRole)
+	return c.HasRole(TrackerRole)
 }
