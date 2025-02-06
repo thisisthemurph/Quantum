@@ -51,3 +51,13 @@ type TrackedItemHistoryRecord struct {
 func (r TrackedItemHistoryRecord) CSV(w *csv.Writer) error {
 	return w.Write([]string{r.Date.Format(dateLayout), r.Type.String(), r.UserName, "", r.Data.LocationName})
 }
+
+type DeletedItemHistoryRecordData struct{}
+
+type DeletedItemHistoryRecord struct {
+	ItemHistoryHeader[DeletedItemHistoryRecordData]
+}
+
+func (r DeletedItemHistoryRecord) CSV(w *csv.Writer) error {
+	return w.Write([]string{r.Date.Format(dateLayout), r.Type.String(), r.UserName, "", ""})
+}

@@ -1,7 +1,7 @@
 import {ReactNode, useState } from "react";
-import {ItemCreatedEvent, ItemHistoryEvent, ItemTrackedEvent} from "@/data/models/item";
+import {ItemCreatedEvent, ItemDeletedEvent, ItemHistoryEvent, ItemTrackedEvent} from "@/data/models/item";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, Box, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDownFromLine, Box, ChevronDown, ChevronUp, CircleAlert, X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -39,7 +39,7 @@ export function ItemHistoryCard({ history, onDownload }: ItemTrackHistoryProps) 
           <CardTitle className="text-xl">{terminology.item} History</CardTitle>
           {user.hasReadPermissions() && <Button variant="outline" onClick={onDownload}>Download CSV</Button>}
         </div>
-        <CardDescription className="text-lg">A detailed history of where this {terminology.item.toLowerCase()} has been.</CardDescription>
+        <CardDescription className="text-lg">A detailed history of the actions taken against this {terminology.item.toLowerCase()}.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -56,26 +56,29 @@ export function ItemHistoryCard({ history, onDownload }: ItemTrackHistoryProps) 
               </div>
             )}
 
-            {alwaysVisibleHistory.map((itemHistoryEvent, index) => {
-              if (itemHistoryEvent.type === "created") {
-                return <ItemCreatedEventDetail key={index} event={itemHistoryEvent}/>
-              }
-              return <ItemTrackedEventDetail key={index} event={itemHistoryEvent}/>
-            })}
+            {alwaysVisibleHistory.map((itemHistoryEvent, index) => <HistoryEvent event={itemHistoryEvent} key={index} />)}
 
             <CollapsibleContent className="flex flex-col gap-1">
-              {hiddenHistory.map((ev, index) => {
-                if (ev.type === "created") {
-                  return <ItemCreatedEventDetail key={index} event={ev}/>
-                }
-                return <ItemTrackedEventDetail key={index} event={ev}/>
-              })}
+              {hiddenHistory.map((ev, index) => <HistoryEvent event={ev} key={index} />)}
             </CollapsibleContent>
           </section>
         </Collapsible>
       </CardContent>
     </Card>
   );
+}
+
+function HistoryEvent({ event }: { event: ItemHistoryEvent }) {
+  switch (event.type) {
+    case "created":
+      return <ItemCreatedEventDetail event={event} />
+    case "tracked":
+      return <ItemTrackedEventDetail event={event} />
+    case "deleted":
+      return <ItemDeletedEventDetail event={event} />
+    default:
+      return <UnknownEventDetail event={event} />
+  }
 }
 
 function HistoryRow({ children }: { children: ReactNode }) {
@@ -86,10 +89,10 @@ function HistoryRow({ children }: { children: ReactNode }) {
   )
 }
 
-function HistoryUserIdentity({ userName, uniqueIdentifier, children, className }: { userName: string, uniqueIdentifier: string, children: ReactNode, className?: string }) {
+function HistoryUserIdentity({ userName, uniqueIdentifier, children, className, title }: { userName: string, uniqueIdentifier: string, children: ReactNode, className?: string, title: string }) {
   return (
     <div className="flex items-center gap-6 overflow-hidden">
-      <Avatar className="sm:w-8 sm:h-8 md:h-10 md:w-10">
+      <Avatar className="sm:w-8 sm:h-8 md:h-10 md:w-10" title={title}>
         <AvatarFallback className={cn("bg-purple-300/80", className)}>
           {children}
         </AvatarFallback>
@@ -113,10 +116,28 @@ function HistoryLocationDetail({ variant, locationName, locationId, date }: { va
   )
 }
 
+function UnknownEventDetail({ event }: { event: ItemHistoryEvent | undefined }) {
+  const eventType = event?.type ?? "Unknown event";
+
+  return (
+    <HistoryRow>
+      <HistoryUserIdentity
+        userName={event?.userName ?? "Unknown user"}
+        uniqueIdentifier={event?.userUsername ?? "Unknown user"}
+        title={`Unknown history event type: ${eventType}`}
+        className="bg-red-400 text-slate-200"
+      >
+        <CircleAlert strokeWidth={2} size={18}/>
+      </HistoryUserIdentity>
+      <p className="text-muted-foreground">Unknown history event type: {eventType}</p>
+    </HistoryRow>
+  )
+}
+
 function ItemTrackedEventDetail({ event }: { event: ItemTrackedEvent }) {
   return (
     <HistoryRow>
-      <HistoryUserIdentity userName={event.userName} uniqueIdentifier={event.userUsername}>
+      <HistoryUserIdentity userName={event.userName} uniqueIdentifier={event.userUsername} title={`Tracked by ${event.userName}`}>
         <ArrowDownFromLine strokeWidth={1} size={18} />
       </HistoryUserIdentity>
       <HistoryLocationDetail variant="tracked" locationId={event.data.locationId} locationName={event.data.locationName} date={event.date} />
@@ -131,10 +152,30 @@ function ItemCreatedEventDetail({ event }: { event: ItemCreatedEvent }) {
         userName={event.userName}
         uniqueIdentifier={event.userUsername}
         className="bg-green-400/60"
+        title={`Created by ${event.userName}`}
       >
         <Box strokeWidth={1} size={18}/>
       </HistoryUserIdentity>
       <HistoryLocationDetail variant="created" locationId={event.data.locationId} locationName={event.data.locationName} date={event.date} />
+    </HistoryRow>
+  )
+}
+
+function ItemDeletedEventDetail({ event }: { event: ItemDeletedEvent }) {
+  return (
+    <HistoryRow>
+      <HistoryUserIdentity
+        userName={event.userName}
+        uniqueIdentifier={event.userUsername}
+        className="bg-red-400/60 text-red-900"
+        title={`Deleted by ${event.userName}`}
+      >
+        <X strokeWidth={3} size={18} />
+      </HistoryUserIdentity>
+      <p className="sm:flex sm:flex-col sm:text-sm md:text-base text-muted-foreground">
+        <span className="sm:text-foreground text-right">Deleted by {event.userName}</span>
+        <span className="sm:text-right sm:font-mono sm:tracking-tight">{format(event.date, "PPP HH:mm")}</span>
+      </p>
     </HistoryRow>
   )
 }

@@ -233,11 +233,26 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 			}
 
 			results = append(results, hr)
+		case model.ItemHistoryTypeDeleted:
+			user, err := s.userRepo.Get(h.UserID)
+			if err != nil {
+				return nil, err
+			}
+			hr := dto.DeletedItemHistoryRecord{
+				ItemHistoryHeader: dto.ItemHistoryHeader[dto.DeletedItemHistoryRecordData]{
+					Type:         historyType,
+					UserID:       h.UserID,
+					UserName:     user.Name,
+					UserUsername: user.Username,
+					Date:         h.CreatedAt,
+					Data:         dto.DeletedItemHistoryRecordData{},
+				},
+			}
+
+			results = append(results, hr)
 		default:
 			continue
 		}
-
-		//results = append(results, res)
 	}
 
 	return results, nil
