@@ -19,6 +19,7 @@ import {RoleBadge} from "@/components/RoleBadge.tsx";
 import {cn} from "@/lib/utils.ts";
 import {UserDropdownMenu} from "@/pages/settings/user-management/UserDropdownMenu.tsx";
 import {Input} from "@/components/ui/input.tsx";
+import {Link} from "react-router";
 
 const columns: ColumnDef<User>[] = [
   {
@@ -58,11 +59,11 @@ const columns: ColumnDef<User>[] = [
     )
   },
     cell: ({ row }) => (
-      <div className="grid grid-cols-[auto_1fr] grid-rows-2 items-center">
+      <Link to={`/user/${row.original.id}`} className="grid grid-cols-[auto_1fr] grid-rows-2 items-center transition-all hover:bg-card hover:shadow-off border border-transparent hover:border-sidebar-border p-2 rounded-lg">
         <UserAvatar name={row.getValue("name")} className="row-span-2 mr-4" />
         <p className="font-semibold tracking-wide">{row.getValue("name")}</p>
         <p className="text-muted-foreground font-mono">{row.original.username}</p>
-      </div>
+      </Link>
     ),
   },
   {
@@ -163,7 +164,7 @@ export function UserDataTable({ data, isLoading, filteredRoles, onFilteredRolesC
                 role={role}
                 onClick={handleRoleFilterClicked}
                 tooltipOff={true}
-                className={cn("", !filteredRoles.includes(role) && "bg-muted text-slate-800")} />
+                className={cn("", !filteredRoles.includes(role) && "bg-muted text-foreground-muted")} />
             ))}
           </div>
         </section>

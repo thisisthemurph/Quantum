@@ -1275,6 +1275,10 @@ body {
   border-radius: 0.75rem;
 }
 
+.rounded {
+  border-radius: 0.25rem;
+}
+
 .rounded-r-lg {
   border-top-right-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
@@ -1433,6 +1437,14 @@ body {
 .bg-red-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(248 113 113 / var(--tw-bg-opacity, 1));
+}
+
+.bg-foreground {
+  background-color: hsl(var(--foreground));
+}
+
+.bg-foreground\/80 {
+  background-color: hsl(var(--foreground) / 0.8);
 }
 
 .fill-current {
@@ -2049,6 +2061,10 @@ body {
   border-color: rgb(226 232 240 / var(--tw-border-opacity, 1));
 }
 
+.hover\:border-sidebar-border:hover {
+  border-color: hsl(var(--sidebar-border));
+}
+
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
@@ -2105,6 +2121,10 @@ body {
   background-color: hsl(var(--sidebar-accent));
 }
 
+.hover\:bg-card:hover {
+  background-color: hsl(var(--card));
+}
+
 .hover\:text-accent-foreground:hover {
   color: hsl(var(--accent-foreground));
 }
@@ -2128,6 +2148,12 @@ body {
 .hover\:shadow-\[0_0_0_1px_hsl\(var\(--sidebar-accent\)\)\]:hover {
   --tw-shadow: 0 0 0 1px hsl(var(--sidebar-accent));
   --tw-shadow-colored: 0 0 0 1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:shadow:hover {
+  --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
