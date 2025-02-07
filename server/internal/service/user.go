@@ -102,6 +102,10 @@ func (s *UserService) Update(id uuid.UUID, name, username string, roles permissi
 	return dto.NewUserResponseFromModel(*u), err
 }
 
+func (s *UserService) Delete(id uuid.UUID) error {
+	return s.userRepo.Delete(id)
+}
+
 func (s *UserService) VerifyPassword(username, password string) (dto.UserResponse, error) {
 	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {

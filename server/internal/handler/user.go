@@ -28,6 +28,7 @@ func (h *UserHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/user", mf(h.list))
 	mux.HandleFunc("GET /api/v1/user/{userId}", mf(h.get))
 	mux.HandleFunc("PUT /api/v1/user/{userId}", mf(h.update))
+	mux.HandleFunc("DELETE /api/v1/user/{userId}", mf(h.delete))
 	mux.HandleFunc("POST /api/v1/user", mf(h.create))
 }
 
@@ -164,4 +165,29 @@ func (h *UserHandler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res.WithStatus(w, http.StatusCreated).SendJSON(user)
+}
+
+func (h *UserHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Unauthorized(w)
+		return
+	}
+
+	userID, err := uuid.Parse(r.PathValue("userId"))
+	if err != nil {
+		res.Error(w, "invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	if !currentUserRoles(r).IsAdmin() {
+		res.Forbidden(w)
+		return
+	}
+
+	if err := h.userService.Delete(userID); err != nil {
+		res.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

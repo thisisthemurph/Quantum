@@ -15,4 +15,5 @@ type User struct {
 	LastLoggedInAt *time.Time                 `db:"last_logged_in_at"`
 	CreatedAt      time.Time                  `db:"created_at"`
 	UpdatedAt      time.Time                  `db:"updated_at"`
+	DeletedAt      *time.Time                 `db:"deleted_at"`
 }

@@ -15,6 +15,8 @@ type UserResponse struct {
 	LastLoggedInAt *time.Time                 `json:"lastLoggedInAt"`
 	CreatedAt      time.Time                  `json:"createdAt"`
 	UpdatedAt      time.Time                  `json:"updatedAt"`
+	DeletedAt      *time.Time                 `json:"deletedAt"`
+	Deleted        bool                       `json:"deleted"`
 }
 
 func NewUserResponseFromModel(m model.User) UserResponse {
@@ -26,6 +28,8 @@ func NewUserResponseFromModel(m model.User) UserResponse {
 		LastLoggedInAt: m.LastLoggedInAt,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
+		DeletedAt:      m.DeletedAt,
+		Deleted:        m.DeletedAt != nil,
 	}
 }
 

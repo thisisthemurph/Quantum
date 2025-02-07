@@ -10,6 +10,7 @@ create table if not exists users (
     username text not null unique,
     password text not null,
     last_logged_in_at timestamp with time zone default null,
+    deleted_at timestamp with time zone default null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );

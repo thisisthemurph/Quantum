@@ -20,6 +20,7 @@ type UserRepository interface {
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
 	Update(user *model.User) error
+	Delete(id uuid.UUID) error
 	Count() (int, error)
 }
 
@@ -48,7 +49,7 @@ func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error
 			on u.id = ur.user_id
 			where ur.role in (?)
 		)
-		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, ur.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at, ur.role
 		from users u left join user_roles ur on u.id = ur.user_id
 		where u.id in (select id from matched_users)
 		order by u.name, ur.role;`, roleFilters)
@@ -83,7 +84,7 @@ func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error
 
 func (r *postgresUserRepository) Get(id uuid.UUID) (model.User, error) {
 	stmt := `
-		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, r.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at r.role
 		from users u
 		left join user_roles r on u.id = r.user_id
 		where u.id = $1;`
@@ -224,6 +225,15 @@ func (r *postgresUserRepository) Update(user *model.User) error {
 	return nil
 }
 
+func (r *postgresUserRepository) Delete(id uuid.UUID) error {
+	stmt := "update users set deleted_at = now() where id = $1;"
+
+	if _, err := r.db.Exec(stmt, id); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *postgresUserRepository) Count() (int, error) {
 	stmt := `select count(*) from users;`
 
@@ -255,5 +265,6 @@ func (r *postgresUserRepository) userRoleJoinToUserModel(userWithRoles []userRol
 		Roles:     roles,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
+		DeletedAt: user.DeletedAt,
 	}, nil
 }
