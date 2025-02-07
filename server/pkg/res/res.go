@@ -32,13 +32,13 @@ func Error(w http.ResponseWriter, message string, status int) {
 }
 
 func Unauthorized(w http.ResponseWriter) {
-	http.Error(w, "You must be signed in to perform this action", http.StatusUnauthorized)
+	Error(w, "You must be signed in to perform this action", http.StatusUnauthorized)
 }
 
 func Forbidden(w http.ResponseWriter) {
-	http.Error(w, "You do not have permissions to perform this action", http.StatusForbidden)
+	Error(w, "You do not have permissions to perform this action", http.StatusForbidden)
 }
 
 func InternalServerError(w http.ResponseWriter) {
-	http.Error(w, "internal server error", http.StatusInternalServerError)
+	Error(w, "internal server error", http.StatusInternalServerError)
 }
