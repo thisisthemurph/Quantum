@@ -1,10 +1,11 @@
 import { User, UserRole } from "@/data/models/user";
 import { useApi } from "@/hooks/use-api";
-import { useQuery } from "@tanstack/react-query";
-import {UserDataTable} from "@/pages/settings/user-management/UserDataTable.tsx";
+import {useMutation, useQuery} from "@tanstack/react-query";
+import {UserDataTable} from "@/pages/settings/user-management/UserDataTable/UserDataTable.tsx";
 import {useState} from "react";
 import {CreateUserButton} from "@/pages/settings/user-management/CreateUserButton.tsx";
 import {useUser} from "@/hooks/use-user.ts";
+import {toast} from "sonner";
 
 export function UserManagementTab() {
   const user = useUser();
@@ -24,6 +25,22 @@ export function UserManagementTab() {
     }
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (user: User) => {
+      const result = await api<void>(`/user/${user.id}`, {
+        method: "DELETE",
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error ?? "Failed to delete user");
+      }
+
+      return user;
+    },
+    onSuccess: (user) => toast.success("User deleted", { description: `User ${user.username} has been deleted` }),
+    onError: (err) => toast.error(err.message),
+  });
+
   function filterUsersByRole(roles: UserRole[]) {
     setRoleFilter(roles);
   }
@@ -39,7 +56,9 @@ export function UserManagementTab() {
           data={usersQuery.data ?? []}
           isLoading={usersQuery.isLoading}
           filteredRoles={roleFilter}
-          onFilteredRolesChanged={filterUsersByRole} />
+          onFilteredRolesChanged={filterUsersByRole}
+          onDelete={(user) => deleteUserMutation.mutate(user)}
+        />
       </section>
     </div>
   );
