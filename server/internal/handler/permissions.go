@@ -29,3 +29,9 @@ func currentUserRoles(r *http.Request) permissions.RoleCollection {
 	}
 	return roles
 }
+
+// isCurrentUser checks if the user_id in the request context is the same as the given id.
+func isCurrentUser(r *http.Request, id uuid.UUID) bool {
+	currentID, ok := currentUserID(r)
+	return ok && currentID == id
+}
