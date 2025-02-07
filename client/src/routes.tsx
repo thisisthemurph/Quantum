@@ -11,6 +11,7 @@ import ItemGroupListingPage from "@/pages/item-group-listing";
 import AuthenticationLayout from "@/layouts/authentication-layout.tsx";
 import {LogInPage} from "@/pages/auth";
 import ManageUserPage from "@/pages/settings/user-management/ManageUserPage.tsx";
+import CreateUserPage from "@/pages/user-create";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
         <Route path="/locations" element={<LocationListingPage />} />
         <Route path="/locations/:locationId" element={<LocationDetailsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/user/create" element={<CreateUserPage />} />
         <Route path="/user/:userId" element={<ManageUserPage />} />
       </Route>
     </Routes>

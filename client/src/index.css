@@ -832,6 +832,10 @@ body {
   margin-top: 2rem;
 }
 
+.mt-\[8px\] {
+  margin-top: 8px;
+}
+
 .block {
   display: block;
 }
@@ -1025,6 +1029,10 @@ body {
   width: 100%;
 }
 
+.w-\[340px\] {
+  width: 340px;
+}
+
 .min-w-0 {
   min-width: 0px;
 }
@@ -1143,6 +1151,10 @@ body {
   grid-template-columns: auto 1fr;
 }
 
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .grid-rows-2 {
   grid-template-rows: repeat(2, minmax(0, 1fr));
 }
@@ -1227,6 +1239,24 @@ body {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+
+.space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.75rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.space-y-0 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0px * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0px * var(--tw-space-y-reverse));
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
 }
 
 .overflow-auto {
@@ -1445,6 +1475,11 @@ body {
 
 .bg-foreground\/80 {
   background-color: hsl(var(--foreground) / 0.8);
+}
+
+.bg-slate-950 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(2 6 23 / var(--tw-bg-opacity, 1));
 }
 
 .fill-current {

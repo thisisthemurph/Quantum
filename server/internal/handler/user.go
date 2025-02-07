@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
@@ -94,7 +95,7 @@ func (h *UserHandler) get(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		res.Unauthorized(w)
 		return
 	}
 
@@ -109,8 +110,17 @@ func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.Roles) == 0 {
+		res.Error(w, "At least one role is required", http.StatusBadRequest)
+		return
+	}
+
 	user, err := h.userService.Create(req.Name, req.Username, req.Username, req.Roles)
 	if err != nil {
+		if errors.Is(err, service.ErrUserUsernameExists) {
+			res.Error(w, "Username is already taken, please choose another", http.StatusConflict)
+			return
+		}
 		res.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

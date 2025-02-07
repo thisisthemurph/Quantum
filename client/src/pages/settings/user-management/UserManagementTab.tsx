@@ -3,8 +3,11 @@ import { useApi } from "@/hooks/use-api";
 import { useQuery } from "@tanstack/react-query";
 import {UserDataTable} from "@/pages/settings/user-management/UserDataTable.tsx";
 import {useState} from "react";
+import {CreateUserButton} from "@/pages/settings/user-management/CreateUserButton.tsx";
+import {useUser} from "@/hooks/use-user.ts";
 
 export function UserManagementTab() {
+  const user = useUser();
   const api = useApi();
   const [roleFilter, setRoleFilter] = useState<UserRole[]>([]);
 
@@ -27,7 +30,10 @@ export function UserManagementTab() {
 
   return (
     <div>
-      <h1 className="my-4 text-xl">User management</h1>
+      <section className="flex justify-between items-center">
+        <h1 className="my-4 text-xl">User management</h1>
+        {user.isAdmin && <CreateUserButton text="Create new user"/>}
+      </section>
       <section className="grid grid-cols-1">
         <UserDataTable
           data={usersQuery.data ?? []}

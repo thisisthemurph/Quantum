@@ -81,6 +81,10 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userService.Create(request.Name, request.Username, request.Password, permissions.RoleCollection{role})
 	if err != nil {
+		if errors.Is(err, service.ErrUserUsernameExists) {
+			res.Error(w, "Username already taken, please choose another", http.StatusConflict)
+			return
+		}
 		h.logger.Error("failed to create user", "username", request.Username, "error", err)
 		res.InternalServerError(w)
 		return

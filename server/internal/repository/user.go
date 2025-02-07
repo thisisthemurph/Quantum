@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"quantum/internal/model"
 	"quantum/internal/permissions"
 )
+
+var ErrUserUsernameExists = errors.New("username already exists")
 
 type UserRepository interface {
 	List(roleFilters []string) ([]model.User, error)
@@ -73,14 +76,7 @@ func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error
 		}
 		users = append(users, user)
 	}
-	//for _, u := range usersWithRoles {
-	//	user, err := r.userRoleJoinToUserModel([]userRoleJoin{u})
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	users = append(users, user)
-	//}
-	//
+
 	return users, nil
 }
 
@@ -139,6 +135,10 @@ func (r *postgresUserRepository) Create(user *model.User) error {
 	}()
 
 	if err = tx.Get(user, stmt, user.Name, user.Username, user.Password); err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation" && pqErr.Constraint == "users_username_key" {
+			return ErrUserUsernameExists
+		}
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 

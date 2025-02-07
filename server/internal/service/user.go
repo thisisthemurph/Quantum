@@ -12,7 +12,10 @@ import (
 	"quantum/internal/repository"
 )
 
-var ErrUserNotFound = fmt.Errorf("user not found")
+var (
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserUsernameExists = errors.New("username already exists")
+)
 
 type UserService struct {
 	userRepo repository.UserRepository
@@ -74,6 +77,9 @@ func (s *UserService) Create(name, username, password string, roles permissions.
 	}
 
 	if err := s.userRepo.Create(&userModel); err != nil {
+		if errors.Is(err, repository.ErrUserUsernameExists) {
+			return dto.UserResponse{}, ErrUserUsernameExists
+		}
 		return dto.UserResponse{}, err
 	}
 
