@@ -52,12 +52,11 @@ func TestMain(m *testing.M) {
 
 func setUpItemHandler(db *sqlx.DB, logger *slog.Logger) *handler.ItemHandler {
 	itemRepo := repository.NewItemRepository(db)
-	historyRepo := repository.NewItemHistoryRepository(db)
 	locationRepo := repository.NewLocationRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	settingsRepo := repository.NewPostgresSettingsRepository(db)
 
-	itemService := service.NewItemService(itemRepo, historyRepo, locationRepo, userRepo)
+	itemService := service.NewItemService(itemRepo, locationRepo, userRepo)
 	settingsService := service.NewSettingsService(settingsRepo)
 
 	return handler.NewItemHandler(itemService, settingsService, logger)
