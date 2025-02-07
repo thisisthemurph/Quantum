@@ -1,5 +1,5 @@
 import {Page} from "@/components/Page.tsx";
-import {NewUserForm, NewUserFormValues} from "@/pages/user-create/NewUserForm.tsx";
+import {UserForm, UserFormResponse} from "@/components/UserForm.tsx";
 import {toast} from "sonner";
 import {useApi} from "@/hooks/use-api.ts";
 import {User} from "@/data/models/user.ts";
@@ -9,18 +9,10 @@ export default function CreateUserPage() {
   const api = useApi();
   const navigate = useNavigate();
 
-  async function handleCreateNewUser(data: NewUserFormValues) {
-    const body = {
-      name: data.name,
-      username: data.username,
-      roles: Object.entries(data)
-        .filter(([key, value]) => value && key !== "name" && key !== "username")
-        .map(([key]) => key),
-    }
-
+  async function handleCreateNewUser(data: UserFormResponse) {
     const response = await api<User>("/user", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -43,7 +35,7 @@ export default function CreateUserPage() {
 
   return (
     <Page title="Create new user" >
-      <NewUserForm onCreate={handleCreateNewUser} />
+      <UserForm submitText="Create user" onSubmit={handleCreateNewUser} />
     </Page>
   )
 }

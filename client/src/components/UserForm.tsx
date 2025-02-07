@@ -8,7 +8,7 @@ import {toast} from "sonner";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {TerminologySettings} from "@/data/models/settings.ts";
 import {useSettings} from "@/hooks/use-settings.tsx";
-import { UserRole } from "@/data/models/user";
+import { UserRole } from "@/data/models/user.ts";
 
 const formSchema = z.object({
   name: z.string().min(1, "A name must be provided"),
@@ -19,13 +19,20 @@ const formSchema = z.object({
   tracker: z.boolean().default(false).optional(),
 });
 
-export type NewUserFormValues = z.infer<typeof formSchema>;
+type UserFormValues = z.infer<typeof formSchema>;
+
+// UserFormResponse represents the data that will be sent to the server when the form is submitted.
+export type UserFormResponse = {
+  name: string;
+  username: string;
+  roles: UserRole[]
+};
 
 type RoleField = {
   key: UserRole;
   label: string;
   description: (terminology: TerminologySettings) => string;
-}
+};
 
 const roleFields: RoleField[] = [
   {
@@ -50,13 +57,24 @@ const roleFields: RoleField[] = [
   },
 ];
 
-interface NewUserFormProps {
-  onCreate: (data: NewUserFormValues) => void;
+function transform(data: UserFormValues): { name: string; username: string; roles: UserRole[] } {
+  return {
+    name: data.name,
+    username: data.username,
+    roles: Object.entries(data)
+      .filter(([key, value]) => value && key !== "name" && key !== "username")
+      .map(([key]) => key) as UserRole[],
+  };
 }
 
-export function NewUserForm({ onCreate }: NewUserFormProps) {
+interface UserFormProps {
+  onSubmit: (data: UserFormResponse) => void;
+  submitText: string;
+}
+
+export function UserForm({ onSubmit, submitText }: UserFormProps) {
   const { terminology } = useSettings();
-  const form = useForm<NewUserFormValues>({
+  const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -99,7 +117,7 @@ export function NewUserForm({ onCreate }: NewUserFormProps) {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onCreate)}
+        onSubmit={form.handleSubmit((values) => onSubmit(transform(values)))}
         className="flex flex-col gap-4 max-w-lg"
       >
         <FormField
@@ -158,7 +176,7 @@ export function NewUserForm({ onCreate }: NewUserFormProps) {
           </div>
         </section>
 
-        <Button type="submit">Create</Button>
+        <Button type="submit">{submitText}</Button>
       </form>
     </Form>
   )
