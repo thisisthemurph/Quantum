@@ -28,3 +28,15 @@ func NewUserResponseFromModel(m model.User) UserResponse {
 		UpdatedAt:      m.UpdatedAt,
 	}
 }
+
+type UserCreateRequest struct {
+	Name     string                     `json:"name"`
+	Username string                     `json:"username"`
+	Roles    permissions.RoleCollection `json:"roles"`
+}
+
+type UserUpdateRequest struct {
+	Name     string                     `json:"name"`
+	Username string                     `json:"username"`
+	Roles    permissions.RoleCollection `json:"roles"`
+}

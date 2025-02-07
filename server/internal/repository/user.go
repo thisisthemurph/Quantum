@@ -19,6 +19,7 @@ type UserRepository interface {
 	Get(id uuid.UUID) (model.User, error)
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
+	Update(user *model.User) error
 	Count() (int, error)
 }
 
@@ -147,6 +148,75 @@ func (r *postgresUserRepository) Create(user *model.User) error {
 			return fmt.Errorf("failed to assign role %v: %w", role, err)
 		}
 	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func (r *postgresUserRepository) Update(user *model.User) error {
+	updateUserStmt := `
+		update users
+		set name = $1, username = $2
+		where id = $3;`
+
+	selectRolesStmt := `
+		select role from user_roles where user_id = $1;`
+
+	insertRoleStmt := `
+		insert into user_roles (user_id, role) values ($1, $2);`
+
+	deleteRoleStmt := `
+		delete from user_roles where user_id = $1 and role = $2;`
+
+	tx, err := r.db.BeginTxx(context.TODO(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if _, err = tx.Exec(updateUserStmt, user.Name, user.Username, user.ID); err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	var existingRoles []string
+	if err = tx.Select(&existingRoles, selectRolesStmt, user.ID); err != nil {
+		return fmt.Errorf("failed to select existing roles: %w", err)
+	}
+
+	existingRolesMap := make(map[string]struct{}, len(existingRoles))
+	for _, role := range existingRoles {
+		existingRolesMap[role] = struct{}{}
+	}
+
+	// Insert new roles if they are not one of the user's existing roles
+	for _, role := range user.Roles {
+		if _, exists := existingRolesMap[role.String()]; !exists {
+			if _, err = tx.Exec(insertRoleStmt, user.ID, role); err != nil {
+				return fmt.Errorf("failed to insert role %v: %w", role, err)
+			}
+		}
+		delete(existingRolesMap, role.String())
+	}
+
+	// Delete any roles the user has that are not part of the new roles
+	for role := range existingRolesMap {
+		if _, err = tx.Exec(deleteRoleStmt, user.ID, role); err != nil {
+			return fmt.Errorf("failed to delete role %v: %w", role, err)
+		}
+	}
+
+	updatedUser, err := r.Get(user.ID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve updated user: %w", err)
+	}
+
+	user = &updatedUser
 
 	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)

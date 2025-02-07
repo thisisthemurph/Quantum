@@ -86,6 +86,22 @@ func (s *UserService) Create(name, username, password string, roles permissions.
 	return dto.NewUserResponseFromModel(userModel), nil
 }
 
+func (s *UserService) Update(id uuid.UUID, name, username string, roles permissions.RoleCollection) (dto.UserResponse, error) {
+	u := &model.User{
+		ID:       id,
+		Name:     name,
+		Username: username,
+		Roles:    roles,
+	}
+
+	err := s.userRepo.Update(u)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	return dto.NewUserResponseFromModel(*u), err
+}
+
 func (s *UserService) VerifyPassword(username, password string) (dto.UserResponse, error) {
 	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {

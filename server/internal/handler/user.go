@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
-	"quantum/internal/permissions"
+	"quantum/internal/dto"
 	"quantum/internal/service"
 	"quantum/pkg/res"
 	"strings"
@@ -27,13 +27,8 @@ func NewUserHandler(userService *service.UserService, logger *slog.Logger) *User
 func (h *UserHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/user", mf(h.list))
 	mux.HandleFunc("GET /api/v1/user/{userId}", mf(h.get))
+	mux.HandleFunc("PUT /api/v1/user/{userId}", mf(h.update))
 	mux.HandleFunc("POST /api/v1/user", mf(h.create))
-}
-
-type UserCreateRequest struct {
-	Name     string                     `json:"name"`
-	Username string                     `json:"username"`
-	Roles    permissions.RoleCollection `json:"roles"`
 }
 
 func (h *UserHandler) list(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +99,7 @@ func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UserCreateRequest
+	var req dto.UserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		res.Error(w, "invalid request", http.StatusBadRequest)
 		return
@@ -115,7 +110,50 @@ func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Currently using the username as the password, need a better flow for this!
 	user, err := h.userService.Create(req.Name, req.Username, req.Username, req.Roles)
+	if err != nil {
+		if errors.Is(err, service.ErrUserUsernameExists) {
+			res.Error(w, "Username is already taken, please choose another", http.StatusConflict)
+			return
+		}
+		res.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.WithStatus(w, http.StatusCreated).SendJSON(user)
+}
+
+func (h *UserHandler) update(w http.ResponseWriter, r *http.Request) {
+	if !authenticated(r) {
+		res.Unauthorized(w)
+		return
+	}
+
+	userID, err := uuid.Parse(r.PathValue("userId"))
+	if err != nil {
+		res.Error(w, "invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	if !isCurrentUser(r, userID) && !currentUserRoles(r).IsAdmin() {
+		res.Forbidden(w)
+		return
+	}
+
+	var req dto.UserUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("failed to decode request", "error", err)
+		res.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.Roles) == 0 {
+		res.Error(w, "At least one role is required", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.userService.Update(userID, req.Name, req.Username, req.Roles)
 	if err != nil {
 		if errors.Is(err, service.ErrUserUsernameExists) {
 			res.Error(w, "Username is already taken, please choose another", http.StatusConflict)
