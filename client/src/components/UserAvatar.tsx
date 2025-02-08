@@ -9,14 +9,15 @@ function avatarInitials(name: string) {
 interface UserAvatarProps {
   name: string;
   className?: string;
+  deleted?: boolean;
 }
 
-export function UserAvatar({name, className}: UserAvatarProps) {
+export function UserAvatar({name, className, deleted}: UserAvatarProps) {
   const initials = avatarInitials(name);
 
   return (
     <Avatar className={cn("", className)}>
-      <AvatarFallback className="bg-purple-200/80" title={name}>
+      <AvatarFallback className={cn("bg-purple-200/80", deleted && "bg-red-100 text-red-800")} title={name}>
         {initials}
       </AvatarFallback>
     </Avatar>
