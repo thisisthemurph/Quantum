@@ -102,6 +102,10 @@ func (s *UserService) Update(id uuid.UUID, name, username string, roles permissi
 	return dto.NewUserResponseFromModel(*u), err
 }
 
+func (s *UserService) UpdateLastLoggedIn(userID uuid.UUID) error {
+	return s.userRepo.UpdateLastLoggedIn(userID)
+}
+
 func (s *UserService) Delete(id uuid.UUID) error {
 	return s.userRepo.Delete(id)
 }

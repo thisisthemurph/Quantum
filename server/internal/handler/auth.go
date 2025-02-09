@@ -136,6 +136,11 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	if err := h.userService.UpdateLastLoggedIn(user.ID); err != nil {
+		// An error here should not prevent a success
+		h.logger.Error("failed to update user last logged in timestamp")
+	}
+
 	res.JSON(w, user)
 }
 

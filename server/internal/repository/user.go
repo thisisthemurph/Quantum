@@ -20,6 +20,7 @@ type UserRepository interface {
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
 	Update(user *model.User) error
+	UpdateLastLoggedIn(id uuid.UUID) error
 	Delete(id uuid.UUID) error
 	Count() (int, error)
 }
@@ -49,7 +50,7 @@ func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error
 			on u.id = ur.user_id
 			where ur.role in (?)
 		)
-		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at, ur.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at, u.last_logged_in_at, ur.role
 		from users u left join user_roles ur on u.id = ur.user_id
 		where u.id in (select id from matched_users)
 		order by u.name, ur.role;`, roleFilters)
@@ -225,6 +226,12 @@ func (r *postgresUserRepository) Update(user *model.User) error {
 	return nil
 }
 
+func (r *postgresUserRepository) UpdateLastLoggedIn(userID uuid.UUID) error {
+	stmt := "update users set last_logged_in_at = now() where id = $1;"
+	_, err := r.db.Exec(stmt, userID)
+	return err
+}
+
 func (r *postgresUserRepository) Delete(id uuid.UUID) error {
 	stmt := "update users set deleted_at = now() where id = $1;"
 
@@ -256,15 +263,7 @@ func (r *postgresUserRepository) userRoleJoinToUserModel(userWithRoles []userRol
 		}
 	}
 
-	user := userWithRoles[0]
-	return model.User{
-		ID:        user.ID,
-		Name:      user.Name,
-		Username:  user.Username,
-		Password:  user.Password,
-		Roles:     roles,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		DeletedAt: user.DeletedAt,
-	}, nil
+	user := userWithRoles[0].User
+	user.Roles = roles
+	return user, nil
 }
