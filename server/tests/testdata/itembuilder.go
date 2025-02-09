@@ -46,7 +46,7 @@ func (b *ItemBuilder) WithDescription(description string) *ItemBuilder {
 
 // WithCreatedHistoryRecord adds a history record for the item creation in the item_history table.
 // The order of these functions in the builder is important, as the history records are inserted in the order they are added.
-func (b *ItemBuilder) WithCreatedHistoryRecord(userID uuid.UUID, locationID uuid.UUID) *ItemBuilder {
+func (b *ItemBuilder) WithCreatedHistoryRecord(userID, locationID uuid.UUID) *ItemBuilder {
 	data := &model.ItemCreatedHistoryData{
 		Reference:   b.model.Reference,
 		GroupKey:    b.model.GroupKey,
@@ -61,6 +61,56 @@ func (b *ItemBuilder) WithCreatedHistoryRecord(userID uuid.UUID, locationID uuid
 
 	history := model.HistoryDataContainer{
 		Type: model.ItemHistoryTypeCreated,
+		Data: jsonData,
+	}
+
+	// Add the history builder function to be handled in the Build function later.
+	b.historyFns = append(b.historyFns, func() error {
+		return b.buildHistoryForItem(history, userID)
+	})
+
+	return b
+}
+
+// WithTrackedHistoryRecord adds a history record for the tracking of an item in the item_history table.
+// The order of these functions in the builder is important, as the history records are inserted in the order they are added.
+func (b *ItemBuilder) WithTrackedHistoryRecord(userID, locationID uuid.UUID) *ItemBuilder {
+	data := &model.ItemTrackedHistoryData{
+		LocationID: locationID,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		b.t.Fatalf("failed to marshal history data: %v", err)
+	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeTracked,
+		Data: jsonData,
+	}
+
+	// Add the history builder function to be handled in the Build function later.
+	b.historyFns = append(b.historyFns, func() error {
+		return b.buildHistoryForItem(history, userID)
+	})
+
+	return b
+}
+
+// WithTrackedUserHistoryRecord adds a history record for the tracking of an item to a user in the item_history table.
+// The order of these functions in the builder is important, as the history records are inserted in the order they are added.
+func (b *ItemBuilder) WithTrackedUserHistoryRecord(userID, trackedToUser uuid.UUID) *ItemBuilder {
+	data := &model.ItemTrackedUserHistoryData{
+		UserID: trackedToUser,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		b.t.Fatalf("failed to marshal history data: %v", err)
+	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeTrackedUser,
 		Data: jsonData,
 	}
 
