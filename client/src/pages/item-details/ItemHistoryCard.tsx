@@ -1,5 +1,11 @@
 import {ReactNode, useState } from "react";
-import {ItemCreatedEvent, ItemDeletedEvent, ItemHistoryEvent, ItemTrackedEvent} from "@/data/models/item";
+import {
+  ItemCreatedEvent,
+  ItemDeletedEvent,
+  ItemHistoryEvent,
+  ItemTrackedEvent,
+  ItemTrackedToUserEvent
+} from "@/data/models/item";
 import { Button } from "@/components/ui/button";
 import { ArrowDownFromLine, Box, ChevronDown, ChevronUp, CircleAlert, X } from "lucide-react";
 import {
@@ -74,6 +80,8 @@ function HistoryEvent({ event }: { event: ItemHistoryEvent }) {
       return <ItemCreatedEventDetail event={event} />
     case "tracked":
       return <ItemTrackedEventDetail event={event} />
+    case "tracked-user":
+      return <ItemTrackedToUserEventDetail event={event} />
     case "deleted":
       return <ItemDeletedEventDetail event={event} />
     default:
@@ -141,6 +149,23 @@ function ItemTrackedEventDetail({ event }: { event: ItemTrackedEvent }) {
         <ArrowDownFromLine strokeWidth={1} size={18} />
       </HistoryUserIdentity>
       <HistoryLocationDetail variant="tracked" locationId={event.data.locationId} locationName={event.data.locationName} date={event.date} />
+    </HistoryRow>
+  )
+}
+
+function ItemTrackedToUserEventDetail({ event }: { event: ItemTrackedToUserEvent }) {
+  return (
+    <HistoryRow>
+      <HistoryUserIdentity userName={event.userName} uniqueIdentifier={event.userUsername} title={`Tracked by ${event.userName}`}>
+        <ArrowDownFromLine strokeWidth={1} size={18} />
+      </HistoryUserIdentity>
+
+      <p className="sm:flex sm:flex-col sm:text-sm md:text-base text-muted-foreground">
+        <span className="sm:text-foreground text-right">
+          {event.userId === event.data.userId ? "Tracked to themselves" : `Tracked to user ${event.data.userUsername}`}
+        </span>
+        <span className="sm:text-right sm:font-mono sm:tracking-tight">{format(event.date, "PPP HH:mm")}</span>
+      </p>
     </HistoryRow>
   )
 }

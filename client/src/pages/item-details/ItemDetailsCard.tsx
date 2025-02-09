@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Item } from "@/data/models/item";
 import {Button} from "@/components/ui/button.tsx";
-import {Location} from "@/data/models/location.ts";
+import {TrackableLocation} from "@/data/models/location.ts";
 import {Link} from "react-router";
 import {useSettings} from "@/hooks/use-settings.tsx";
 import {Box, CircleX} from "lucide-react";
@@ -19,12 +19,13 @@ import { toast } from "sonner";
 
 interface ItemDetailsProps {
   item: Item;
-  locations: Location[];
+  locations: TrackableLocation[];
+  onTracked: (values: { location: TrackableLocation }) => void;
+  onTrackedToMe: () => void;
   onLocationSearched: (value: string) => void;
-  onItemTracked: (values: { locationId: string }) => void;
 }
 
-export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSearched }: ItemDetailsProps) {
+export function ItemDetailsCard({ item, locations, onTracked, onTrackedToMe, onLocationSearched }: ItemDetailsProps) {
   const user = useUser();
   const { terminology } = useSettings();
 
@@ -66,9 +67,14 @@ export function ItemDetailsCard({ item, locations, onItemTracked, onLocationSear
       </CardContent>
       <CardFooter>
         <section className="w-full flex justify-start sm:justify-between items-end gap-2">
-          {user.hasTrackerPermissions() && <Button variant="outline">Track to me</Button>}
+          {user.hasTrackerPermissions() && <Button variant="outline" onClick={onTrackedToMe}>Track to me</Button>}
           {user.hasTrackerPermissions()
-            ? <TrackItemFormDialog locations={locations} currentLocationName={item.currentLocation.name} onSearched={onLocationSearched} onSubmit={onItemTracked} />
+            ? <TrackItemFormDialog
+                locations={locations}
+                currentLocation={item.currentLocation}
+                onSearched={onLocationSearched}
+                onSubmit={onTracked}
+              />
             : <Button variant="outline" disabled={true}>Current location: {item.currentLocation.name}</Button>}
         </section>
       </CardFooter>
