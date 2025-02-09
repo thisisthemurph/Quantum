@@ -9,8 +9,8 @@ import (
 )
 
 type ItemBuilder struct {
-	*sqlx.DB
 	t          *testing.T
+	db         *sqlx.DB
 	model      *model.ItemModel
 	historyFns []func() error
 }
@@ -18,7 +18,7 @@ type ItemBuilder struct {
 func NewItemBuilder(t *testing.T, db *sqlx.DB) *ItemBuilder {
 	return &ItemBuilder{
 		t:          t,
-		DB:         db,
+		db:         db,
 		model:      &model.ItemModel{},
 		historyFns: make([]func() error, 0),
 	}
@@ -128,7 +128,7 @@ func (b *ItemBuilder) Build() *model.ItemModel {
 		VALUES ($1, $2, $3, $4) 
 		returning id, created_at, updated_at;`
 
-	err := b.Get(
+	err := b.db.Get(
 		b.model,
 		insert,
 		b.model.Identifier,
@@ -160,7 +160,7 @@ func (b *ItemBuilder) buildHistoryForItem(history model.HistoryDataContainer, us
 		insert into item_history (user_id, item_id, data)
 		values ($1, $2, $3)`
 
-	if _, err = b.Exec(stmt, userID, b.model.ID, historyJSON); err != nil {
+	if _, err = b.db.Exec(stmt, userID, b.model.ID, historyJSON); err != nil {
 		return err
 	}
 	return nil

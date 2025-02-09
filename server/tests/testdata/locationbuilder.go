@@ -7,15 +7,15 @@ import (
 )
 
 type LocationBuilder struct {
-	*sqlx.DB
 	t     *testing.T
+	db    *sqlx.DB
 	model *model.LocationModel
 }
 
 func NewLocationBuilder(t *testing.T, db *sqlx.DB) *LocationBuilder {
 	return &LocationBuilder{
 		t:     t,
-		DB:    db,
+		db:    db,
 		model: &model.LocationModel{},
 	}
 }
@@ -41,7 +41,7 @@ func (b *LocationBuilder) Build() *model.LocationModel {
 	    values ($1, $2, $3)
 	    returning id, created_at, updated_at;`
 
-	if err := b.Get(b.model, insert, b.model.Name, b.model.Description, b.model.IsDeleted); err != nil {
+	if err := b.db.Get(b.model, insert, b.model.Name, b.model.Description, b.model.IsDeleted); err != nil {
 		b.t.Fatalf("failed to insert location: %v", err)
 	}
 	return b.model
