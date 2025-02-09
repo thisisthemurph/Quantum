@@ -18,7 +18,8 @@ type ItemRepository interface {
 	GroupKeyExists(groupKey string) (bool, error)
 	Create(item *model.ItemModel, createdByUserID, createdAtLocationID uuid.UUID) error
 	Delete(itemID, userID uuid.UUID) error
-	AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error
+	AppendNewItemTrackedToLocationHistory(userID, itemID, locationID uuid.UUID) error
+	AppendNewItemTrackedToUserHistory(trackingUser, toUserID, itemID uuid.UUID) error
 }
 
 type postgresItemRepository struct {
@@ -171,7 +172,7 @@ func (r *postgresItemRepository) GetItemHistory(itemID uuid.UUID) ([]model.ItemH
 	return histories, nil
 }
 
-func (r *postgresItemRepository) AppendNewItemTrackedHistory(userID, itemID, locationID uuid.UUID) error {
+func (r *postgresItemRepository) AppendNewItemTrackedToLocationHistory(userID, itemID, locationID uuid.UUID) error {
 	historyData := model.ItemTrackedHistoryData{
 		LocationID: locationID,
 	}
@@ -196,6 +197,37 @@ func (r *postgresItemRepository) AppendNewItemTrackedHistory(userID, itemID, loc
 		values ($1, $2, $3);`
 
 	_, err = r.db.Exec(stmt, userID, itemID, jsonHistoryData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *postgresItemRepository) AppendNewItemTrackedToUserHistory(trackingUser, toUserID, itemID uuid.UUID) error {
+	historyData := model.ItemTrackedUserHistoryData{
+		UserID: toUserID,
+	}
+
+	jsonData, err := json.Marshal(historyData)
+	if err != nil {
+		return err
+	}
+
+	history := model.HistoryDataContainer{
+		Type: model.ItemHistoryTypeTrackedUser,
+		Data: jsonData,
+	}
+
+	jsonHistoryData, err := json.Marshal(history)
+	if err != nil {
+		return err
+	}
+
+	stmt := `
+		insert into item_history (user_id, item_id, data)
+		values ($1, $2, $3);`
+
+	_, err = r.db.Exec(stmt, trackingUser, itemID, jsonHistoryData)
 	if err != nil {
 		return err
 	}

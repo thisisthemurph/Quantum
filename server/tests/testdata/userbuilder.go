@@ -8,15 +8,15 @@ import (
 )
 
 type UserBuilder struct {
-	*sqlx.DB
 	t     *testing.T
+	db    *sqlx.DB
 	model *model.User
 }
 
 func NewUserBuilder(t *testing.T, db *sqlx.DB) *UserBuilder {
 	return &UserBuilder{
 		t:  t,
-		DB: db,
+		db: db,
 		model: &model.User{
 			Roles: make(permissions.RoleCollection, 0),
 		},
@@ -78,7 +78,7 @@ func (b *UserBuilder) Build() *model.User {
 		values ($1, $2, $3)
 		returning id, created_at, updated_at`
 
-	err := b.Get(b.model, insert, b.model.Name, b.model.Username, b.model.Password)
+	err := b.db.Get(b.model, insert, b.model.Name, b.model.Username, b.model.Password)
 	if err != nil {
 		b.t.Errorf("failed to insert user: %v", err)
 	}
@@ -88,7 +88,7 @@ func (b *UserBuilder) Build() *model.User {
 		values ($1, $2)`
 
 	for _, role := range b.model.Roles {
-		_, err = b.Exec(insert, b.model.ID, role)
+		_, err = b.db.Exec(insert, b.model.ID, role)
 		if err != nil {
 			b.t.Errorf("failed to insert user role: %v", err)
 		}

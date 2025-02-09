@@ -1,4 +1,4 @@
-import {ColumnDef} from "@tanstack/react-table";
+import {ColumnDef, FilterFn} from "@tanstack/react-table";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {ArrowUpDown} from "lucide-react";
@@ -9,6 +9,12 @@ import {UserAvatar} from "@/components/UserAvatar.tsx";
 import {RoleBadge} from "@/components/RoleBadge.tsx";
 import {cn} from "@/lib/utils.ts";
 import {UserDropdownMenu} from "@/pages/settings/user-management/UserDataTable/UserDropdownMenu.tsx";
+
+const includeDeletedFilter: FilterFn<any> = (row, columnId, value) => {
+  const deletedAt = row.getValue<string | null>(columnId);
+  const shouldIncludeDeleted = value as boolean;
+  return shouldIncludeDeleted || deletedAt === null;
+}
 
 interface UseUserDataTableColumns {
   onDelete: (user: User) => void;
@@ -52,13 +58,19 @@ export function useUserDataTableColumns({ onDelete }: UseUserDataTableColumns) {
           </Button>
         )
       },
-      cell: ({ row }) => (
-        <Link to={`/user/${row.original.id}`} className="grid grid-cols-[auto_1fr] grid-rows-2 items-center transition-all hover:bg-card hover:shadow-off border border-transparent hover:border-sidebar-border p-2 rounded-lg">
-          <UserAvatar name={row.getValue("name")} className="row-span-2 mr-4" />
-          <p className="font-semibold tracking-wide">{row.getValue("name")}</p>
-          <p className="text-muted-foreground font-mono">{row.original.username}</p>
-        </Link>
-      ),
+      cell: ({ row }) => {
+        const isDeleted = row.getValue("deletedAt") !== null;
+        return (
+          <Link to={`/user/${row.original.id}`}
+            className="relative grid grid-cols-[auto_1fr] grid-rows-2 items-center transition-all hover:bg-card hover:shadow-off border border-transparent hover:border-sidebar-border p-2 rounded-lg"
+          >
+            <UserAvatar name={row.getValue("name")} deleted={isDeleted} className={cn("row-span-2 mr-4")}/>
+            <p className="font-semibold tracking-wide">{row.getValue("name")}</p>
+            <p className="text-muted-foreground font-mono">{row.original.username}</p>
+            {isDeleted && <span className="absolute top-2 left-2 bg-destructive dark:bg-red-600 w-3 h-3 rounded-full" title="Deleted user"></span>}
+          </Link>
+        );
+      },
     },
     {
       accessorKey: "access",
@@ -74,6 +86,16 @@ export function useUserDataTableColumns({ onDelete }: UseUserDataTableColumns) {
       accessorKey: "createdAt",
       header: () => <div>Date added</div>,
       cell: ({ row }) => <div>{format(new Date(row.getValue("createdAt")), "PPP")}</div>,
+    },
+    {
+      accessorKey: "deletedAt",
+      filterFn: includeDeletedFilter,
+      header: () => <div>Date deleted</div>,
+      cell: ({ row }) => {
+        const deletedAt: string = row.getValue("deletedAt");
+        if (!deletedAt) return <div className="text-muted-foreground">Not deleted</div>
+        return <div>{format(new Date(deletedAt), "PPP")}</div>
+      },
     },
     {
       accessorKey: "lastLoggedInAt",

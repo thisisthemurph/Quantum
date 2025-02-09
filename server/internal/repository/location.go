@@ -25,15 +25,40 @@ func NewLocationRepository(db *sqlx.DB) LocationRepository {
 
 func (r *postgresLocationRepository) List(max *int, filter string, includeDeleted bool) ([]model.LocationModel, error) {
 	stmt := `
-		select * 
-		from locations 
-		where name ilike '%' || $1 || '%' 
-		  and ($2 = true or is_deleted = false)
-		order by name
-		limit coalesce($3::int, null::int);`
+		with trackable_locations as (
+			select
+				id,
+				name,
+				description,
+				is_deleted,
+				created_at,
+				updated_at,
+				false as is_user
+			from locations
+			where name ilike '%' || $1 || '%'
+				and ($2 = true or is_deleted = false)
+		
+			union
+		
+			select
+				u.id,
+				u.name,
+				u.username as description,
+				false as is_deleted,
+				u.created_at,
+				u.updated_at,
+				true as is_user
+			from users u
+			join user_roles ur on u.id = ur.user_id
+			where u.deleted_at is null
+				and ur.role = 'tracker'
+		)
+		select *
+		from trackable_locations
+		order by name;`
 
 	var locations = make([]model.LocationModel, 0)
-	if err := r.db.Select(&locations, stmt, filter, includeDeleted, max); err != nil {
+	if err := r.db.Select(&locations, stmt, filter, includeDeleted); err != nil {
 		return nil, err
 	}
 	return locations, nil

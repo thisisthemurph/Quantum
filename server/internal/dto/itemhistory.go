@@ -52,6 +52,21 @@ func (r TrackedItemHistoryRecord) CSV(w *csv.Writer) error {
 	return w.Write([]string{r.Date.Format(dateLayout), r.Type.String(), r.UserName, "", r.Data.LocationName})
 }
 
+type TrackedItemUserHistoryRecordData struct {
+	ItemReference string    `json:"itemReference"`
+	UserID        uuid.UUID `json:"userId"`
+	UserName      string    `json:"userName"`
+	UserUsername  string    `json:"userUsername"`
+}
+
+type TrackedItemUserHistoryRecord struct {
+	ItemHistoryHeader[TrackedItemUserHistoryRecordData]
+}
+
+func (r TrackedItemUserHistoryRecord) CSV(w *csv.Writer) error {
+	return w.Write([]string{r.Date.Format(dateLayout), r.Type.String(), r.UserName, "", r.Data.UserUsername})
+}
+
 type DeletedItemHistoryRecordData struct{}
 
 type DeletedItemHistoryRecord struct {

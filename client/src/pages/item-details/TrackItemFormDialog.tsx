@@ -1,4 +1,4 @@
-import { Location } from "@/data/models/location";
+import { TrackableLocation } from "@/data/models/location";
 import { z } from "zod";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { useState } from "react";
@@ -7,21 +7,24 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Button} from "@/components/ui/button.tsx";
 import {CommandDialogCombobox} from "@/components/CommandDialogCombobox.tsx";
+import {User, Map} from "lucide-react";
+import {ItemCurrentLocation} from "@/data/models/item.ts";
 
 const formSchema = z.object({
   locationId: z.string().min(1, "A location must be selected"),
+  isUser: z.boolean().optional(),
 });
 
 export type TrackItemFormValues = z.infer<typeof formSchema>;
 
 interface TrackItemFormDialogProps {
-  locations: Location[];
-  currentLocationName: string;
+  locations: TrackableLocation[];
+  currentLocation: ItemCurrentLocation;
   onSearched: (value: string) => void;
-  onSubmit: (values: TrackItemFormValues) => void;
+  onSubmit: (values: { location: TrackableLocation }) => void;
 }
 
-export function TrackItemFormDialog({ locations, currentLocationName, onSearched, onSubmit }: TrackItemFormDialogProps) {
+export function TrackItemFormDialog({ locations, currentLocation, onSearched, onSubmit }: TrackItemFormDialogProps) {
   const [open, setOpen] = useState(false);
   const { terminology } = useSettings();
 
@@ -29,6 +32,7 @@ export function TrackItemFormDialog({ locations, currentLocationName, onSearched
     resolver: zodResolver(formSchema),
     defaultValues: {
       locationId: "",
+      isUser: false,
     },
   });
 
@@ -46,7 +50,8 @@ export function TrackItemFormDialog({ locations, currentLocationName, onSearched
                 </FormLabel>
                 <FormControl>
                   <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-                    {currentLocationName.length > 0 ? currentLocationName : `Select a ${terminology.location}`}
+                    {currentLocation.trackedToUser ? <User /> : <Map />}
+                    {currentLocation.name}
                   </Button>
                 </FormControl>
               </div>
@@ -62,12 +67,22 @@ export function TrackItemFormDialog({ locations, currentLocationName, onSearched
                 onSearch={onSearched}
                 onItemSelected={(location) => {
                   form.setValue("locationId", location.id);
+                  form.setValue("isUser", location.isUser);
                   setOpen(false);
-                  form.handleSubmit((locationId) => onSubmit(locationId))();
+
+                  form.handleSubmit(() => onSubmit({ location }))();
                 }}
                 fieldValue={field.value}
                 itemValueResolver={(location) => location.id}
-                rowDefinition={(location) => <span>{location.name}</span>}
+                rowDefinition={(location) => (
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-col">
+                      <span className="font-medium tracking-wide">{location.name}</span>
+                      {location.isUser && <span className="font-mono text-muted-foreground">{location.description}</span>}
+                    </div>
+                    {location.isUser ? <User/> : <Map />}
+                  </div>
+                )}
               />
             </FormItem>
           )}

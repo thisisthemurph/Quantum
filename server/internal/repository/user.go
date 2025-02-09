@@ -84,7 +84,7 @@ func (r *postgresUserRepository) List(roleFilters []string) ([]model.User, error
 
 func (r *postgresUserRepository) Get(id uuid.UUID) (model.User, error) {
 	stmt := `
-		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at r.role
+		select u.id, u.name, u.username, u.password, u.created_at, u.updated_at, u.deleted_at, r.role
 		from users u
 		left join user_roles r on u.id = r.user_id
 		where u.id = $1;`

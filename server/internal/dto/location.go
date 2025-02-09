@@ -16,6 +16,7 @@ type LocationResponse struct {
 	IsDeleted   bool      `json:"isDeleted"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	IsUser      bool      `json:"isUser"`
 }
 
 func NewLocationResponseFromModel(l model.LocationModel) LocationResponse {
@@ -26,6 +27,7 @@ func NewLocationResponseFromModel(l model.LocationModel) LocationResponse {
 		IsDeleted:   l.IsDeleted,
 		CreatedAt:   l.CreatedAt,
 		UpdatedAt:   l.UpdatedAt,
+		IsUser:      l.IsUser,
 	}
 }
 

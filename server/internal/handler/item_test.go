@@ -3,10 +3,12 @@ package handler_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"quantum/internal/permissions"
 	"testing"
 
 	"quantum/internal/app"
@@ -114,6 +116,89 @@ func TestGetItemByID(t *testing.T) {
 	}
 }
 
+func TestGetItemByID_FetchesLatestLocationHistory(t *testing.T) {
+	t.Cleanup(func() { testutils.CleanDatabase(t, application.DB) })
+	h := setUpItemHandler(application.DB, application.Logger)
+
+	user1 := testdata.NewUserBuilder(t, application.DB).
+		WithName("Terry Tracker").
+		WithUsername("terry.tracker").
+		WithRole(permissions.TrackerRole).
+		Build()
+
+	user2 := testdata.NewUserBuilder(t, application.DB).
+		WithName("Timmy Tracker").
+		WithUsername("timmy.tracker").
+		WithRole(permissions.TrackerRole).
+		Build()
+
+	locationStart := testdata.NewLocationBuilder(t, application.DB).
+		WithName("Start Location").
+		Build()
+
+	locationSecond := testdata.NewLocationBuilder(t, application.DB).
+		WithName("Second Location").
+		Build()
+
+	locationThird := testdata.NewLocationBuilder(t, application.DB).
+		WithName("Third Location").
+		Build()
+
+	itemWithCreatedHistory := testdata.NewItemBuilder(t, application.DB).
+		WithIdentifier("item-0001").
+		WithReference("REF-1").
+		WithGroupKey("XYZ").
+		WithCreatedHistoryRecord(user1.ID, locationStart.ID).
+		Build()
+
+	itemWithTrackedHistory := testdata.NewItemBuilder(t, application.DB).
+		WithIdentifier("item-0002").
+		WithReference("REF-2").
+		WithGroupKey("XYZ").
+		WithCreatedHistoryRecord(user1.ID, locationStart.ID).
+		WithTrackedHistoryRecord(user1.ID, locationSecond.ID).
+		WithTrackedHistoryRecord(user1.ID, locationThird.ID).
+		Build()
+
+	itemWithTrackedUserHistory := testdata.NewItemBuilder(t, application.DB).
+		WithIdentifier("item-0003").
+		WithReference("REF-3").
+		WithGroupKey("XYZ").
+		WithCreatedHistoryRecord(user1.ID, locationStart.ID).
+		WithTrackedHistoryRecord(user1.ID, locationSecond.ID).
+		WithTrackedUserHistoryRecord(user1.ID, user2.ID).
+		Build()
+
+	testCases := []struct {
+		name               string
+		item               *model.ItemModel
+		expectedLocationID uuid.UUID
+	}{
+		{"with only created history", itemWithCreatedHistory, locationStart.ID},
+		{"with created and tracked history", itemWithTrackedHistory, locationThird.ID},
+		{"with created, tracked, and tracked-user history", itemWithTrackedUserHistory, user2.ID},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/item/%s", tc.item.ID.String()), nil)
+			testutils.RequestWithJWT(t, req, user1, application.Config.SessionSecret)
+			rr := testutils.ServeRequest(h, req, application.Config.SessionSecret)
+
+			assert.Equal(t, http.StatusOK, rr.Code)
+
+			var itemResponse dto.ItemResponse
+			if err := json.NewDecoder(rr.Body).Decode(&itemResponse); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			assert.Equal(t, tc.item.ID, itemResponse.ID)
+			assert.Equal(t, tc.item.Identifier, itemResponse.Identifier)
+			assert.Equal(t, tc.expectedLocationID.String(), itemResponse.CurrentLocation.ID.String())
+		})
+	}
+}
+
 func TestListItems(t *testing.T) {
 	t.Cleanup(func() { testutils.CleanDatabase(t, application.DB) })
 	h := setUpItemHandler(application.DB, application.Logger)
@@ -186,6 +271,54 @@ func TestListItems(t *testing.T) {
 			}
 
 			assert.Len(t, itemResponse, len(allItemModels))
+		})
+	}
+}
+
+func TestTrackItem_OnlyTrackersCanTrackItems(t *testing.T) {
+	t.Cleanup(func() { testutils.CleanDatabase(t, application.DB) })
+	h := setUpItemHandler(application.DB, application.Logger)
+
+	reader := testdata.InsertReaderUser(t, application.DB)
+	writer := testdata.InsertWriterUser(t, application.DB)
+	tracker := testdata.InsertTrackerUser(t, application.DB)
+	admin := testdata.InsertAdminUser(t, application.DB)
+	adminWithTrackerRole := testdata.NewUserBuilder(t, application.DB).
+		WithName("Tracker Admin").
+		WithUsername("tracker.admin").
+		WithRole(permissions.AdminRole).
+		WithRole(permissions.TrackerRole).
+		Build()
+
+	item := testdata.NewItemBuilder(t, application.DB).
+		WithIdentifier("item-identifier").
+		WithReference("item-reference").
+		WithGroupKey("item-group").
+		Build()
+
+	location := testdata.NewLocationBuilder(t, application.DB).
+		WithName("target-location").
+		Build()
+
+	testCases := []struct {
+		name         string
+		user         *model.User
+		expectStatus int
+	}{
+		{"admin should not be able to track", admin, 403},
+		{"reader should not be able to track", reader, 403},
+		{"writer should not be able to track", writer, 403},
+		{"tracker should be able to track", tracker, 204},
+		{"admin with tracker should be able to track", adminWithTrackerRole, 204},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/item/%v/track/%s", item.ID, location.ID), nil)
+			testutils.RequestWithJWT(t, req, tc.user, application.Config.SessionSecret)
+			rr := testutils.ServeRequest(h, req, application.Config.SessionSecret)
+
+			assert.Equal(t, tc.expectStatus, rr.Code)
 		})
 	}
 }

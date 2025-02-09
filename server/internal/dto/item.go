@@ -44,10 +44,11 @@ func NewItemResponseFromModel(item model.ItemModel, location *model.LocationMode
 }
 
 type CurrentLocation struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description *string   `json:"description"`
-	TrackedAt   time.Time `json:"trackedAt"`
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	Description   *string   `json:"description"`
+	TrackedAt     time.Time `json:"trackedAt"`
+	TrackedToUser bool      `json:"trackedToUser"`
 }
 
 type ItemWithCurrentLocationResponse struct {

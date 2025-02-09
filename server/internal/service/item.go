@@ -41,10 +41,11 @@ func (s *ItemService) Get(id uuid.UUID) (dto.ItemWithCurrentLocationResponse, er
 	item := dto.ItemWithCurrentLocationResponse{
 		ItemResponse: dto.NewItemResponseFromModel(itemModel.ItemModel, nil),
 		CurrentLocation: dto.CurrentLocation{
-			ID:          itemModel.LocationID,
-			Name:        itemModel.LocationName,
-			Description: itemModel.LocationDescription,
-			TrackedAt:   itemModel.TrackedAt,
+			ID:            itemModel.LocationID,
+			Name:          itemModel.LocationName,
+			Description:   itemModel.LocationDescription,
+			TrackedAt:     itemModel.TrackedAt,
+			TrackedToUser: itemModel.TrackedToUser,
 		},
 	}
 
@@ -152,7 +153,22 @@ func (s *ItemService) TrackItem(userID, itemID, locationID uuid.UUID) error {
 		return err
 	}
 
-	if err := s.itemRepo.AppendNewItemTrackedHistory(userID, item.ID, locationID); err != nil {
+	if err := s.itemRepo.AppendNewItemTrackedToLocationHistory(userID, item.ID, locationID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ItemService) TrackItemToUser(trackingUserID, toUserID, itemID uuid.UUID) error {
+	item, err := s.itemRepo.Get(itemID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrItemNotFound
+		}
+	}
+
+	if err := s.itemRepo.AppendNewItemTrackedToUserHistory(trackingUserID, toUserID, item.ID); err != nil {
 		return err
 	}
 
@@ -228,6 +244,38 @@ func (s *ItemService) GetItemHistory(itemID uuid.UUID) ([]dto.ItemHistoryRecord,
 						ItemReference: item.Reference,
 						LocationID:    d.LocationID,
 						LocationName:  location.Name,
+					},
+				},
+			}
+
+			results = append(results, hr)
+		case model.ItemHistoryTypeTrackedUser:
+			d := data.(model.ItemTrackedUserHistoryData)
+			item, err := s.itemRepo.Get(itemID)
+			if err != nil {
+				return nil, err
+			}
+			trackingUser, err := s.userRepo.Get(h.UserID)
+			if err != nil {
+				return nil, err
+			}
+			trackedToUser, err := s.userRepo.Get(d.UserID)
+			if err != nil {
+				return nil, err
+			}
+
+			hr := dto.TrackedItemUserHistoryRecord{
+				ItemHistoryHeader: dto.ItemHistoryHeader[dto.TrackedItemUserHistoryRecordData]{
+					Type:         historyType,
+					UserID:       h.UserID,
+					UserName:     trackingUser.Name,
+					UserUsername: trackingUser.Username,
+					Date:         h.CreatedAt,
+					Data: dto.TrackedItemUserHistoryRecordData{
+						ItemReference: item.Reference,
+						UserID:        trackedToUser.ID,
+						UserName:      trackedToUser.Name,
+						UserUsername:  trackedToUser.Username,
 					},
 				},
 			}

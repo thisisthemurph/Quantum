@@ -10,3 +10,7 @@ export type CreateLocationRequest = {
   name: string;
   description?: string;
 }
+
+export interface TrackableLocation extends Location {
+  isUser: boolean;
+}

@@ -1,5 +1,5 @@
 import {ALL_ROLES, User, UserRole} from "@/data/models/user.ts";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {
   ColumnFiltersState, flexRender,
   getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel,
@@ -13,6 +13,8 @@ import {RoleBadge} from "@/components/RoleBadge.tsx";
 import {cn} from "@/lib/utils.ts";
 import {Input} from "@/components/ui/input.tsx";
 import {useUserDataTableColumns} from "@/pages/settings/user-management/UserDataTable/useUserDataTableColumns.tsx";
+import { Switch } from "@/components/ui/switch"
+import {Label} from "@/components/ui/label.tsx";
 
 interface UserDataTableProps {
   data: User[];
@@ -27,8 +29,16 @@ export function UserDataTable({ data, isLoading, filteredRoles, onFilteredRolesC
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ updatedAt: false });
   const [rowSelection, setRowSelection] = useState({});
+  const [includeDeleted, setIncludeDeleted] = useState(false);
 
   const columns = useUserDataTableColumns({ onDelete });
+
+  useEffect(() => {
+    setColumnFilters((prev) => [
+      ...prev.filter((filter) => filter.id !== "deletedAt"),
+      { id: "deletedAt", value: includeDeleted }
+    ])
+  }, [includeDeleted]);
 
   const table = useReactTable({
     data,
@@ -68,14 +78,20 @@ export function UserDataTable({ data, isLoading, filteredRoles, onFilteredRolesC
   return (
     <div className="w-full">
       <div className="rounded-md border">
-        <section className="flex justify-between items-center p-2">
-          <Input
-            placeholder="Search users by name"
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
-            className="max-w-sm sm:max-w-md"
-          />
-          <div className={cn("flex gap-2")}>
+        <section className="flex justify-between gap-4 items-center p-2">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              placeholder="Search users by name"
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
+              className="w-sm sm:w-md"
+            />
+            <div className="flex items-center space-x-2">
+              <Switch id="include-deleted" onCheckedChange={(value) => setIncludeDeleted(value)} />
+              <Label htmlFor="include-deleted" className="font-normal">Include deleted</Label>
+            </div>
+          </div>
+          <div className={cn("flex justify-end flex-wrap gap-1 sm:gap-2")}>
             {ALL_ROLES.map((role) => (
               <RoleBadge
                 key={role}
