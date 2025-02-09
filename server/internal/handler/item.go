@@ -43,6 +43,7 @@ func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("GET /api/v1/item", mf(h.listItems))
 	mux.HandleFunc("POST /api/v1/item", mf(h.createItem))
 	mux.HandleFunc("POST /api/v1/item/{itemId}/track/{locationId}", mf(h.trackItem))
+	mux.HandleFunc("POST /api/v1/item/{itemId}/track/user/{userId}", mf(h.trackItemToUser))
 }
 
 func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
@@ -218,6 +219,41 @@ func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.itemService.TrackItem(userID, itemID, locationID); err != nil {
+		h.logger.Error("error tracking item", "error", err)
+		res.InternalServerError(w)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ItemHandler) trackItemToUser(w http.ResponseWriter, r *http.Request) {
+	userID, authed := currentUserID(r)
+	if !authed {
+		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !currentUserRoles(r).HasTrackPermissions() {
+		res.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	itemID, err := uuid.Parse(r.PathValue("itemId"))
+	if err != nil {
+		h.logger.Error("invalid item id", "error", err)
+		res.Error(w, "invalid item id", http.StatusBadRequest)
+		return
+	}
+
+	toUserID, err := uuid.Parse(r.PathValue("userId"))
+	if err != nil {
+		h.logger.Error("invalid user id", "error", err)
+		res.Error(w, "invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.itemService.TrackItemToUser(userID, toUserID, itemID); err != nil {
 		h.logger.Error("error tracking item", "error", err)
 		res.InternalServerError(w)
 		return

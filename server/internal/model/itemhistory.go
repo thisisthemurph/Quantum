@@ -9,6 +9,16 @@ import (
 
 type ItemHistoryType string
 
+const (
+	ItemHistoryTypeUnknown     ItemHistoryType = "unknown"
+	ItemHistoryTypeCreated     ItemHistoryType = "created"
+	ItemHistoryTypeUpdated     ItemHistoryType = "updated"
+	ItemHistoryTypeDeleted     ItemHistoryType = "deleted"
+	ItemHistoryTypeRestored    ItemHistoryType = "restored"
+	ItemHistoryTypeTracked     ItemHistoryType = "tracked"
+	ItemHistoryTypeTrackedUser ItemHistoryType = "tracked-user"
+)
+
 func (t ItemHistoryType) String() string {
 	switch t {
 	case ItemHistoryTypeCreated:
@@ -25,15 +35,6 @@ func (t ItemHistoryType) String() string {
 		return "Unknown"
 	}
 }
-
-const (
-	ItemHistoryTypeUnknown  ItemHistoryType = "unknown"
-	ItemHistoryTypeCreated  ItemHistoryType = "created"
-	ItemHistoryTypeUpdated  ItemHistoryType = "updated"
-	ItemHistoryTypeDeleted  ItemHistoryType = "deleted"
-	ItemHistoryTypeRestored ItemHistoryType = "restored"
-	ItemHistoryTypeTracked  ItemHistoryType = "tracked"
-)
 
 type ItemHistoryModel struct {
 	ID        int64           `db:"id"`
@@ -63,6 +64,10 @@ type ItemTrackedHistoryData struct {
 	LocationID uuid.UUID `json:"locationId"`
 }
 
+type ItemTrackedUserHistoryData struct {
+	UserID uuid.UUID `json:"userId"`
+}
+
 func (h *ItemHistoryModel) ParseData() (ItemHistoryType, interface{}, error) {
 	var container HistoryDataContainer
 	if err := json.Unmarshal(h.Data, &container); err != nil {
@@ -88,6 +93,12 @@ func (h *ItemHistoryModel) ParseData() (ItemHistoryType, interface{}, error) {
 			return ItemHistoryTypeTracked, nil, err
 		}
 		return ItemHistoryTypeTracked, data, nil
+	case ItemHistoryTypeTrackedUser:
+		var data ItemTrackedUserHistoryData
+		if err := json.Unmarshal(container.Data, &data); err != nil {
+			return ItemHistoryTypeTrackedUser, nil, err
+		}
+		return ItemHistoryTypeTrackedUser, data, nil
 	case ItemHistoryTypeDeleted:
 		return ItemHistoryTypeDeleted, nil, nil
 	case ItemHistoryTypeRestored:
