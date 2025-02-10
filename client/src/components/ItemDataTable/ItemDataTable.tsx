@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { Columns3, ListFilter, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
@@ -32,6 +32,10 @@ import { useSettings } from "@/hooks/use-settings.tsx";
 import { useItemDataTableColumns } from "@/components/ItemDataTable/useItemDataTableColumns.tsx";
 import { useMediaQuery } from "@/hooks/useMediaQuery.ts";
 import { PersistentColumnsContext } from "@/hooks/use-persistent-columns.ts";
+import {cn} from "@/lib/utils.ts";
+import {Calendar} from "@/components/ui/calendar.tsx";
+import {DateRange} from "react-day-picker";
+import {format} from "date-fns";
 
 type HideableColumnName = "updated" | "created" | "description" | "location" | "tracked" | "groupKey";
 
@@ -48,6 +52,9 @@ export function ItemDataTable({ data, persistentColumns, onDeleteItem }: ItemDat
   const columns = useItemDataTableColumns({
     onDelete: onDeleteItem,
   });
+
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filterTrackedDateRange, setFilterTrackedDateRange] = useState<DateRange | undefined>();
 
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -101,9 +108,14 @@ export function ItemDataTable({ data, persistentColumns, onDeleteItem }: ItemDat
     },
   });
 
+  const handleSelectTrackedDateRange = (range: DateRange | undefined) => {
+    setFilterTrackedDateRange(range);
+    console.log("Selected range:", range);
+  };
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter items by reference..."
           value={(table.getColumn("reference")?.getFilterValue() as string) ?? ""}
@@ -112,36 +124,74 @@ export function ItemDataTable({ data, persistentColumns, onDeleteItem }: ItemDat
           }
           className="max-w-sm"
         />
+
+        <section className="space-x-2">
+          <Button variant="outline" onClick={() => setFiltersOpen(!filtersOpen)}>
+            <ListFilter />
+            Filters
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                <Columns3 />
+                Columns
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  const columnName = columnNameMapping[column.id] ?? column.id;
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(displayColumn) => {
+                        column.toggleVisibility(displayColumn);
+                        if (persistentColumns)
+                          persistentColumns.setColumnVisibility(columnName as HideableColumnName, displayColumn);
+                      }}
+                    >
+                      {columnName}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </section>
+      </div>
+      <section className={cn("hidden py-2 gap-4", filtersOpen && "flex")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+            <Button variant="outline">
+              <>
+              {filterTrackedDateRange?.from && filterTrackedDateRange?.to
+                ? (
+                  <span className="font-normal">
+                    <span className="font-medium">Tracked: </span>
+                    <span className="bg-accent py-1 px-2 rounded font-mono">{format(filterTrackedDateRange.from, "yyyy-MM-dd")}</span>
+                    <span> to </span>
+                    <span className="bg-accent py-1 px-2 rounded font-mono">{format(filterTrackedDateRange.to, "yyyy-MM-dd")}</span>
+                  </span>
+                )
+                : <span className="font-normal"><span className="font-medium">Tracked:</span> all dates</span>}
+                <ChevronDown />
+              </>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                const columnName = columnNameMapping[column.id] ?? column.id;
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(displayColumn) => {
-                      column.toggleVisibility(displayColumn);
-                      if (persistentColumns)
-                        persistentColumns.setColumnVisibility(columnName as HideableColumnName, displayColumn);
-                    }}
-                  >
-                    {columnName}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
+          <DropdownMenuContent align="start" className="p-4 space-y-2">
+            <Calendar
+              mode="range"
+              selected={filterTrackedDateRange}
+              onSelect={handleSelectTrackedDateRange}
+              className="rounded-md border"
+            />
+            <Button variant="outline" className="w-full" onClick={() => setFilterTrackedDateRange(undefined)}>Clear selection</Button>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </section>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
