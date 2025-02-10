@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrUserUsernameExists = errors.New("username already exists")
+	ErrUserNotFound        = errors.New("user not found")
+	ErrUserUsernameExists  = errors.New("username already exists")
+	ErrPasswordsDoNotMatch = errors.New("passwords do not match")
 )
 
 type UserService struct {
@@ -102,6 +103,18 @@ func (s *UserService) Update(id uuid.UUID, name, username string, roles permissi
 	return dto.NewUserResponseFromModel(*u), err
 }
 
+func (s *UserService) UpdatePassword(userID uuid.UUID, currentPassword, password string) error {
+	if err := s.VerifyPassword(userID, currentPassword); err != nil {
+		return err
+	}
+
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	return s.userRepo.UpdatePassword(userID, newPasswordHash)
+}
+
 func (s *UserService) UpdateLastLoggedIn(userID uuid.UUID) error {
 	return s.userRepo.UpdateLastLoggedIn(userID)
 }
@@ -110,16 +123,32 @@ func (s *UserService) Delete(id uuid.UUID) error {
 	return s.userRepo.Delete(id)
 }
 
-func (s *UserService) VerifyPassword(username, password string) (dto.UserResponse, error) {
+func (s *UserService) VerifyPassword(userID uuid.UUID, password string) error {
+	user, err := s.userRepo.Get(userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
+		return ErrPasswordsDoNotMatch
+	}
+	return nil
+}
+
+func (s *UserService) VerifyPasswordByUsername(username, password string) (dto.UserResponse, error) {
 	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return dto.UserResponse{}, ErrUserNotFound
 		}
+		return dto.UserResponse{}, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
-		return dto.UserResponse{}, fmt.Errorf("invalid password: %w", err)
+		return dto.UserResponse{}, ErrPasswordsDoNotMatch
 	}
 
 	return dto.NewUserResponseFromModel(user), nil

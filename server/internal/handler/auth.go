@@ -34,6 +34,7 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 	mux.HandleFunc("POST /api/v1/auth/login", mf(h.login))
 	mux.HandleFunc("POST /api/v1/auth/logout", mf(h.logout))
 	mux.HandleFunc("GET /api/v1/auth/user/refresh", mf(h.getCurrentUser))
+	mux.HandleFunc("PUT /api/v1/auth/user/{userId}/password", mf(h.updateUserPassword))
 }
 
 func (h *AuthHandler) getCurrentUser(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +70,7 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set the role to admin if this is the first user to ever sign up.
 	role := permissions.ReaderRole
 	count, err := h.userService.CountUsers()
 	if err != nil {
@@ -79,7 +81,7 @@ func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 		role = permissions.AdminRole
 	}
 
-	user, err := h.userService.Create(request.Name, request.Username, request.Password, permissions.RoleCollection{role})
+	user, err := h.userService.Create(request.Name, request.Username, request.Password.String(), permissions.RoleCollection{role})
 	if err != nil {
 		if errors.Is(err, service.ErrUserUsernameExists) {
 			res.Error(w, "Username already taken, please choose another", http.StatusConflict)
@@ -105,7 +107,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.VerifyPassword(request.Username, request.Password)
+	user, err := h.userService.VerifyPasswordByUsername(request.Username, request.Password)
 	if err != nil {
 		res.Error(w, "invalid username or password", http.StatusUnauthorized)
 		return
@@ -154,4 +156,42 @@ func (h *AuthHandler) logout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 	})
+}
+
+func (h *AuthHandler) updateUserPassword(w http.ResponseWriter, r *http.Request) {
+	var req dto.UpdatePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		res.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	updateUserID, err := uuid.Parse(r.PathValue("userId"))
+	if err != nil {
+		res.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	if !isCurrentUser(r, updateUserID) {
+		res.Forbidden(w)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		message := "There was an issue updating your password, please check and try again"
+		if errors.Is(err, dto.ErrPasswordSame) {
+			message = "The new password must not be the same as the old one"
+		}
+		res.Error(w, message, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.userService.UpdatePassword(updateUserID, req.CurrentPassword.String(), req.NewPassword.String()); err != nil {
+		if errors.Is(err, service.ErrPasswordsDoNotMatch) {
+			res.Error(w, "Current password is not correct", http.StatusBadRequest)
+		} else {
+			h.logger.Error("failed to update user password", "user", updateUserID, "error", err)
+			res.InternalServerError(w)
+		}
+		return
+	}
 }

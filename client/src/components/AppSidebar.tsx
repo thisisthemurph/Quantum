@@ -146,7 +146,7 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <User className="w-5 h-5" />
-                    <span>Account</span>
+                    <Link to="/settings/account">Account</Link>
                     <DropdownMenuShortcut>⇧⌘A</DropdownMenuShortcut>
                   </DropdownMenuItem>
                   <DropdownMenuItem>

@@ -20,6 +20,7 @@ type UserRepository interface {
 	GetByUsername(username string) (model.User, error)
 	Create(user *model.User) error
 	Update(user *model.User) error
+	UpdatePassword(id uuid.UUID, password []byte) error
 	UpdateLastLoggedIn(id uuid.UUID) error
 	Delete(id uuid.UUID) error
 	Count() (int, error)
@@ -224,6 +225,12 @@ func (r *postgresUserRepository) Update(user *model.User) error {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil
+}
+
+func (r *postgresUserRepository) UpdatePassword(userID uuid.UUID, password []byte) error {
+	stmt := "update users set password = $1 where id = $2;"
+	_, err := r.db.Exec(stmt, password, userID)
+	return err
 }
 
 func (r *postgresUserRepository) UpdateLastLoggedIn(userID uuid.UUID) error {
