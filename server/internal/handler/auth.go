@@ -4,15 +4,17 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
+	"time"
+
 	"quantum/internal/dto"
 	"quantum/internal/permissions"
 	"quantum/internal/service"
-	"quantum/pkg/res"
-	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"github.com/thisisthemurph/emit"
 )
 
 type AuthHandler struct {
@@ -40,76 +42,76 @@ func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 func (h *AuthHandler) getCurrentUser(w http.ResponseWriter, r *http.Request) {
 	userID, _ := currentUserID(r)
 	if userID == uuid.Nil {
-		res.WithStatus(w, http.StatusNotFound).SendJSON(nil)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("You must be signed in")
 		return
 	}
 
 	user, err := h.userService.Get(userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			res.WithStatus(w, http.StatusNotFound).SendJSON(nil)
+			emit.New(w).Status(http.StatusNotFound).ErrorJSON("User not found")
 			return
 		}
 		h.logger.Error("failed to get user", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res.JSON(w, user)
+	emit.New(w).JSON(user)
 }
 
 func (h *AuthHandler) signup(w http.ResponseWriter, r *http.Request) {
 	var request dto.SignUpRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		res.Error(w, "invalid request", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid request")
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		res.Error(w, err.Error(), http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON(err.Error())
 		return
 	}
 
-	// Set the role to admin if this is the first user to ever sign up.
 	role := permissions.ReaderRole
 	count, err := h.userService.CountUsers()
 	if err != nil {
 		h.logger.Error("failed to count users", "error", err)
-		res.InternalServerError(w)
+		emit.New(w).ErrorJSON("internal server error")
 		return
 	} else if count == 0 {
+		// Set the role to admin if this is the first user to ever sign up.
 		role = permissions.AdminRole
 	}
 
 	user, err := h.userService.Create(request.Name, request.Username, request.Password.String(), permissions.RoleCollection{role})
 	if err != nil {
 		if errors.Is(err, service.ErrUserUsernameExists) {
-			res.Error(w, "Username already taken, please choose another", http.StatusConflict)
+			emit.New(w).Status(http.StatusConflict).ErrorJSON("Username already taken, please choose another")
 			return
 		}
 		h.logger.Error("failed to create user", "username", request.Username, "error", err)
-		res.InternalServerError(w)
+		emit.New(w).ErrorJSON("failed to create user")
 		return
 	}
 
-	res.WithStatus(w, http.StatusCreated).SendJSON(user)
+	emit.New(w).Status(http.StatusCreated).JSON(user)
 }
 
 func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	var request dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		res.Error(w, "invalid request", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid request")
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		res.Error(w, err.Error(), http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON(err.Error())
 		return
 	}
 
 	user, err := h.userService.VerifyPasswordByUsername(request.Username, request.Password)
 	if err != nil {
-		res.Error(w, "invalid username or password", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Invalid username or password")
 		return
 	}
 
@@ -123,7 +125,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	token, err := claims.SignedString([]byte(h.sessionSecret))
 	if err != nil {
 		h.logger.Error("failed to sign token", "error", err)
-		res.InternalServerError(w)
+		emit.New(w).ErrorJSON("internal server error")
 		return
 	}
 
@@ -143,11 +145,11 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("failed to update user last logged in timestamp")
 	}
 
-	res.JSON(w, user)
+	emit.New(w).JSON(user)
 }
 
 func (h *AuthHandler) logout(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
+	emit.New(w).Cookie(&http.Cookie{
 		Name:     "token",
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
@@ -155,24 +157,24 @@ func (h *AuthHandler) logout(w http.ResponseWriter, r *http.Request) {
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-	})
+	}).NoContent()
 }
 
 func (h *AuthHandler) updateUserPassword(w http.ResponseWriter, r *http.Request) {
 	var req dto.UpdatePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		res.Error(w, "invalid request", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid request")
 		return
 	}
 
 	updateUserID, err := uuid.Parse(r.PathValue("userId"))
 	if err != nil {
-		res.Error(w, "Invalid user ID", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid user ID")
 		return
 	}
 
 	if !isCurrentUser(r, updateUserID) {
-		res.Forbidden(w)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("You do not have permission to perform this action")
 		return
 	}
 
@@ -181,16 +183,16 @@ func (h *AuthHandler) updateUserPassword(w http.ResponseWriter, r *http.Request)
 		if errors.Is(err, dto.ErrPasswordSame) {
 			message = "The new password must not be the same as the old one"
 		}
-		res.Error(w, message, http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON(message)
 		return
 	}
 
 	if err := h.userService.UpdatePassword(updateUserID, req.CurrentPassword.String(), req.NewPassword.String()); err != nil {
 		if errors.Is(err, service.ErrPasswordsDoNotMatch) {
-			res.Error(w, "Current password is not correct", http.StatusBadRequest)
+			emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Current password is not correct")
 		} else {
 			h.logger.Error("failed to update user password", "user", updateUserID, "error", err)
-			res.InternalServerError(w)
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}

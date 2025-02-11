@@ -1,6 +1,8 @@
 module quantum
 
-go 1.22.2
+go 1.23
+
+toolchain go1.23.0
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -10,6 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.10.0
+	github.com/thisisthemurph/emit v1.1.0
 	golang.org/x/crypto v0.32.0
 )
 

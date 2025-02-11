@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/thisisthemurph/emit"
 
 	"quantum/internal/dto"
 	"quantum/internal/service"
@@ -48,33 +49,33 @@ func (h *ItemHandler) RegisterRoutes(mux *http.ServeMux, mf MiddlewareFunc) {
 
 func (h *ItemHandler) getItemByID(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Unauthorized")
 		return
 	}
 
 	if !currentUserRoles(r).HasReadPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("Forbidden")
 		return
 	}
 
 	questionID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
-		h.logger.Error("invalid question id", "error", err)
-		res.Error(w, "invalid question id", http.StatusBadRequest)
+		h.logger.Error("invalid item id", "error", err)
+		emit.New(w).Status(http.StatusBadRequest).Flush()
 		return
 	}
 
 	itemResponse, err := h.itemService.Get(questionID)
 	if err != nil {
 		if errors.Is(err, service.ErrItemNotFound) {
-			res.Error(w, "item not found", http.StatusNotFound)
+			emit.New(w).Status(http.StatusNotFound).ErrorJSON("Item not found")
 			return
 		}
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res.JSON(w, itemResponse)
+	emit.New(w).JSON(itemResponse)
 }
 
 func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
@@ -106,12 +107,12 @@ func (h *ItemHandler) listItems(w http.ResponseWriter, r *http.Request) {
 
 func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Unauthorized")
 		return
 	}
 
 	if !currentUserRoles(r).HasReadPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("Forbidden")
 		return
 	}
 
@@ -134,58 +135,58 @@ func (h *ItemHandler) listItemGroups(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) createItem(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Unauthorized")
 		return
 	}
 
 	if !currentUserRoles(r).HasWritePermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("Forbidden")
 		return
 	}
 
 	var item dto.CreateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
-		res.Error(w, "error decoding item", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Error decoding request")
 		return
 	}
 
 	if err := item.Validate(); err != nil {
-		res.Error(w, err.Error(), http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON(err.Error())
 		return
 	}
 
 	newItem, err := h.itemService.Create(userID, item)
 	if err != nil {
 		h.logger.Error("error creating item", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res.JSON(w, newItem)
+	emit.New(w).Status(http.StatusCreated).JSON(newItem)
 }
 
 func (h *ItemHandler) deleteItem(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Unauthorized")
 		return
 	}
 
 	if !currentUserRoles(r).IsAdmin() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("Forbidden")
 		return
 	}
 
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
-		res.Error(w, "invalid item id", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid ID")
 		return
 	}
 
 	if err := h.itemService.Delete(itemID, userID); err != nil {
 		h.logger.Error("error deleting item", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -195,12 +196,12 @@ func (h *ItemHandler) deleteItem(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		emit.New(w).Status(http.StatusUnauthorized).ErrorJSON("Unauthorized")
 		return
 	}
 
 	if !currentUserRoles(r).HasTrackPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		emit.New(w).Status(http.StatusForbidden).ErrorJSON("Forbidden")
 		return
 	}
 
@@ -230,32 +231,32 @@ func (h *ItemHandler) trackItem(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) trackItemToUser(w http.ResponseWriter, r *http.Request) {
 	userID, authed := currentUserID(r)
 	if !authed {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if !currentUserRoles(r).HasTrackPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
-		res.Error(w, "invalid item id", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid ID")
 		return
 	}
 
 	toUserID, err := uuid.Parse(r.PathValue("userId"))
 	if err != nil {
 		h.logger.Error("invalid user id", "error", err)
-		res.Error(w, "invalid user id", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid user ID")
 		return
 	}
 
 	if err := h.itemService.TrackItemToUser(userID, toUserID, itemID); err != nil {
 		h.logger.Error("error tracking item", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -264,61 +265,61 @@ func (h *ItemHandler) trackItemToUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *ItemHandler) getItemHistory(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if !currentUserRoles(r).HasReadPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
-		res.Error(w, "invalid item id", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid ID")
 		return
 	}
 
 	history, err := h.itemService.GetItemHistory(itemID)
 	if err != nil {
 		h.logger.Error("error getting item history", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res.JSON(w, history)
+	emit.New(w).JSON(history)
 }
 
 func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if !currentUserRoles(r).HasReadPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	itemID, err := uuid.Parse(r.PathValue("itemId"))
 	if err != nil {
 		h.logger.Error("invalid item id", "error", err)
-		res.Error(w, "invalid item id", http.StatusBadRequest)
+		emit.New(w).Status(http.StatusBadRequest).ErrorJSON("Invalid ID")
 		return
 	}
 
 	settings, err := h.settingsService.Get()
 	if err != nil {
 		h.logger.Error("error getting settings", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	history, err := h.itemService.GetItemHistory(itemID)
 	if err != nil {
 		h.logger.Error("error getting item history", "error", err)
-		res.InternalServerError(w)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -330,7 +331,7 @@ func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Requ
 	for _, record := range history {
 		if err := record.CSV(writer); err != nil {
 			h.logger.Error("error writing csv record", "error", err)
-			res.InternalServerError(w)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
@@ -340,12 +341,12 @@ func (h *ItemHandler) downloadItemHistoryCSV(w http.ResponseWriter, r *http.Requ
 
 func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request) {
 	if !authenticated(r) {
-		res.Error(w, "unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if !currentUserRoles(r).HasReadPermissions() {
-		res.Error(w, "forbidden", http.StatusForbidden)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
@@ -357,11 +358,11 @@ func (h *ItemHandler) getItemGroupsExist(w http.ResponseWriter, r *http.Request)
 		exists, err := h.itemService.GroupKeyExists(groupKey)
 		if err != nil {
 			h.logger.Error("error checking group key", "error", err)
-			res.InternalServerError(w)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		results[groupKey] = exists
 	}
 
-	res.JSON(w, results)
+	emit.New(w).JSON(results)
 }
