@@ -13,8 +13,18 @@ import {LogInPage} from "@/pages/auth";
 import ManageUserPage from "@/pages/settings/user-management/ManageUserPage.tsx";
 import CreateUserPage from "@/pages/user-create";
 import AccountSettingsPage from "@/pages/account-settings";
+import useRouteChange from "@/hooks/use-route-change.tsx";
+import {useBreadcrumbs} from "@/hooks/use-breadcrumbs.ts";
 
 export default function AppRoutes() {
+  const { breadcrumbs, setBreadcrumbs } = useBreadcrumbs();
+
+  useRouteChange(() => {
+    if (breadcrumbs) {
+      setBreadcrumbs(null);
+    }
+  });
+
   return (
     <Routes>
       <Route element={<AuthenticationLayout />}>

@@ -67,18 +67,15 @@ export function TerminologyTab({ terminology, onUpdate }: TerminologyTabProps) {
   }
 
   return (
-    <>
-      <h1 className="my-4 text-xl">Terminology settings</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <TerminologyFormSection form={form} name={"item"} name2={"items"} text="An item is an object that can be track from one location to another." />
-          <TerminologyFormSection form={form} name={"location"} name2={"locations"} text="A location is a place that items can be traced to." />
-          <TerminologyFormSection form={form} name={"group"} name2={"groups"} text="An group is a handy way to group items together You can use this to see where all similar items are." />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <TerminologyFormSection form={form} name={"item"} name2={"items"} text="An item is an object that can be track from one location to another." />
+        <TerminologyFormSection form={form} name={"location"} name2={"locations"} text="A location is a place that items can be traced to." />
+        <TerminologyFormSection form={form} name={"group"} name2={"groups"} text="An group is a handy way to group items together You can use this to see where all similar items are." />
 
-          <Button type="submit" className="w-full sm:w-auto" disabled={!form.formState.isDirty}>Save</Button>
-        </form>
-      </Form>
-    </>
+        <Button type="submit" className="w-full sm:w-auto" disabled={!form.formState.isDirty}>Save</Button>
+      </form>
+    </Form>
   );
 }
 

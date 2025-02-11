@@ -18,12 +18,14 @@ import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { useUser } from "@/hooks/use-user.ts";
+import {useBreadcrumbs} from "@/hooks/use-breadcrumbs.ts";
 
 export default function LocationListingPage() {
   const user = useUser();
   const { terminology } = useSettings();
   const { listLocations, createLocation, deleteLocation } = useLocationsApi();
   const [locationPendingDeletion, setLocationPendingDeletion] = useState<Location | undefined>();
+  useBreadcrumbs({ current: "Location listing" });
 
   const queryClient = useQueryClient();
   const locationsQuery = useQuery({

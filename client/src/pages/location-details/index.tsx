@@ -11,6 +11,7 @@ import {Item, ItemWithCurrentLocation} from "@/data/models/item.ts";
 import {toast} from "sonner";
 import {ConfirmAlertDialog} from "@/components/ConfirmAlertDialog.tsx";
 import {useState} from "react";
+import {useBreadcrumbs} from "@/hooks/use-breadcrumbs.ts";
 
 const visibleColumns = {
   location: false,
@@ -22,19 +23,28 @@ const visibleColumns = {
 };
 
 export default function LocationDetailsPage() {
+  const { setBreadcrumbs } = useBreadcrumbs();
   const api = useApi();
   const queryClient = useQueryClient();
   const { terminology } = useSettings();
   const { locationId } = useParams();
   const [itemPendingDeletion, setItemPendingDeletion] = useState<Item | undefined>();
-  const persistentColumns = usePersistentColumns(
-    { key: "location-details-item-listing", defaults: visibleColumns });
+  const persistentColumns = usePersistentColumns({
+    key: "location-details-item-listing",
+    defaults: visibleColumns,
+  });
 
   const {isLoading: isLocationLoading, data: location} = useQuery({
     queryKey: ["location", locationId],
     queryFn: async () => {
       if (!locationId) return;
       const result = await api<Location>(`/location/${locationId}`);
+
+      setBreadcrumbs({
+        crumbs: [{href: "/locations", text: "Location listing"}],
+        current: result.data?.name ?? "unknown"
+      });
+
       return result.data;
     },
   });
