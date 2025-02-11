@@ -47,8 +47,7 @@ export function UserManagementTab() {
 
   return (
     <div>
-      <section className="flex justify-between items-center">
-        <h1 className="my-4 text-xl">User management</h1>
+      <section className="flex justify-end items-center mb-2">
         {user.isAdmin && <CreateUserButton text="Create new user"/>}
       </section>
       <section className="grid grid-cols-1">

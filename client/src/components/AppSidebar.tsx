@@ -9,7 +9,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarMenuItem, SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -74,7 +74,11 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
   ];
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" variant="inset" className="group">
+      <SidebarTrigger
+        title="Toggle sidebar ctrl+b"
+        className="invisible group-hover:visible absolute right-0 top-0 rounded-full translate-y-[5rem] translate-x-1/2"
+      />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="mb-6">
@@ -133,12 +137,23 @@ export function AppSidebar({ userItems: userOwnedItems }: AppSidebarProps) {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  {user?.name ?? "Account"}
-                  <ChevronUp className="ml-auto" />
+                <SidebarMenuButton
+                  className={cn(
+                    "",
+                    !sidebar.open && "bg-foreground dark:bg-accent text-background dark:text-foreground hover:bg-accent hover:text-foreground transition-colors flex justify-center rounded-full"
+                  )}>
+                  {sidebar.open ? <span>{user?.name ?? "Account"}</span> : <User />}
+                  {sidebar.open && <ChevronUp className="ml-auto"/>}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+              <DropdownMenuContent
+                side={sidebar.open ? "top" : "right"}
+                className={cn(
+                  "min-w-[14rem]",
+                  sidebar.open && "w-[--radix-popper-anchor-width]",
+                  !sidebar.open && "ml-2 mb-4"
+                )}
+              >
                 <DropdownMenuLabel>{user?.name ?? "Account"}</DropdownMenuLabel>
 
                 <DropdownMenuSeparator />

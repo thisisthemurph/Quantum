@@ -12,10 +12,12 @@ import { useUser } from "@/hooks/use-user.ts";
 import {useApi} from "@/hooks/use-api.ts";
 import {TrackableLocation} from "@/data/models/location.ts";
 import {Item, ItemHistoryEvent} from "@/data/models/item.ts";
+import {useBreadcrumbs} from "@/hooks/use-breadcrumbs.ts";
 
 export default function ItemDetailsPage() {
   const api = useApi();
   const user = useUser();
+  const { setBreadcrumbs } = useBreadcrumbs();
   const { itemId } = useParams();
   const { downloadHistoryCsv } = useItemsApi();
   const { terminology } = useSettings();
@@ -29,6 +31,13 @@ export default function ItemDetailsPage() {
       if (!itemId) return;
       const response = await api<Item>(`/item/${itemId}`);
       if (response.ok) {
+        setBreadcrumbs({
+          crumbs: [{
+            href: "/items",
+            text: "Item listing"
+          }],
+          current: response.data.reference,
+        })
         return response.data;
       }
       throw new Error(response.error || `There has been an issue fetching the ${terminology.item.toLowerCase()} data`);

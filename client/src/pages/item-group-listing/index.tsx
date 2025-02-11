@@ -5,16 +5,43 @@ import { useItemsApi } from "@/data/api/items";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert.tsx";
 import { AlertCircle } from "lucide-react";
-import {useSettings} from "@/hooks/use-settings.tsx";
+import { useSettings } from "@/hooks/use-settings.tsx";
+import { useBreadcrumbs } from "@/hooks/use-breadcrumbs.ts";
+import { usePersistentColumns } from "@/hooks/use-persistent-columns.ts";
+
+const visibleColumns = {
+  location: true,
+  description: false,
+  groupKey: false,
+  tracked: true,
+  created: true,
+  updated: true,
+};
 
 export default function ItemGroupListingPage() {
   const { groupKey } = useParams();
   const { listItems } = useItemsApi();
   const { terminology } = useSettings();
+  const { setBreadcrumbs } = useBreadcrumbs();
+  const persistentColumns = usePersistentColumns(
+    { key: "items-listing-group", defaults: visibleColumns });
 
   const { isLoading, data } = useQuery({
     queryKey: ["items", groupKey],
-    queryFn: () => listItems(groupKey),
+    queryFn: async () => {
+      if (!groupKey) return;
+      const response = await listItems(groupKey)
+
+      setBreadcrumbs({
+        crumbs: [{
+          href: "/items",
+          text: "Item listing",
+        }],
+        current: groupKey
+      })
+
+      return response;
+    },
   });
 
   return (
@@ -30,7 +57,12 @@ export default function ItemGroupListingPage() {
        </Alert>)}
       {isLoading || !data
         ? <p>Loading...</p>
-        : <ItemDataTable data={data} visibleColumns={{ location: true, groupKey: false }} />}
+        : <ItemDataTable
+            data={data}
+            persistentColumns={persistentColumns}
+            onDeleteItem={(item) => console.warn(`Deleting item ${item.reference}. Not implemented`)}
+          />
+      }
     </Page>
   );
 }

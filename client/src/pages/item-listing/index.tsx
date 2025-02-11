@@ -4,15 +4,16 @@ import { Page } from "@/components/Page.tsx";
 import { Link } from "react-router";
 import { PackagePlus } from "lucide-react";
 import { useItemsApi } from "@/data/api/items";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSettings } from "@/hooks/use-settings.tsx";
 import { usePersistentColumns } from "@/hooks/use-persistent-columns.ts";
 import { useUser } from "@/hooks/use-user.ts";
-import {useApi} from "@/hooks/use-api.ts";
+import { useApi } from "@/hooks/use-api.ts";
 import { Item } from "@/data/models/item";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import { useState } from "react";
-import {ConfirmAlertDialog} from "@/components/ConfirmAlertDialog.tsx";
+import { ConfirmAlertDialog } from "@/components/ConfirmAlertDialog.tsx";
+import { useBreadcrumbs } from "@/hooks/use-breadcrumbs.ts";
 
 const visibleColumns = {
   location: true,
@@ -29,10 +30,14 @@ export default function ItemListingPage() {
   const user = useUser();
   const { listItems } = useItemsApi();
   const { terminology } = useSettings();
+  const [itemPendingDeletion, setItemPendingDeletion] = useState<Item | undefined>();
   const persistentColumns = usePersistentColumns(
     { key: "items-listing", defaults: visibleColumns });
 
-  const [itemPendingDeletion, setItemPendingDeletion] = useState<Item | undefined>();
+  useBreadcrumbs({
+    crumbs: [],
+    current: "Item listing"
+  });
 
   const itemsQuery = useQuery({
     queryKey: ["items"],
